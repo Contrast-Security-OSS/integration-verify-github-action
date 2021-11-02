@@ -13,12 +13,13 @@ BASEURL="https://${INPUT_CONTRAST_HOST:-app.contrastsecurity.com}/Contrast/api/n
 CURLCMD="curl --silent -HAccept:application/json -HAPI-Key:$INPUT_CONTRAST_API_KEY -HAuthorization:$INPUT_CONTRAST_AUTHORIZATION"
 SEVERITIES=${INPUT_SEVERITIES-CRITICAL,HIGH}
 FAIL_THRESHOLD=${INPUT_FAIL_THRESHOLD-0}
+BUILD_NUMBER=${BUILD_NUMBER:-$GITHUB_SHA}
 
 #Lookup the application ID of the named application
 declare -a MYARRAY=$($CURLCMD -G --data-urlencode "filterText=$INPUT_APP_NAME" "$BASEURL/applications/name")
 APP_ID=$( echo ${MYARRAY[@]} | jq -r '.applications[0].app_id' )
 [[ -n $ACTIONS_STEP_DEBUG ]] && echo "::debug::${MYARRAY[@]}"
-echo "The app id for the app called $INPUT_APP_NAME is $APP_ID. Checking for $SEVERITIES vulnerabilities with commitHash=$CI_COMMIT_SHORT_SHA."
+echo "The app id for the app called $INPUT_APP_NAME is $APP_ID. Checking for $SEVERITIES vulnerabilities with commitHash=$BUILD_NUMBER."
 
 #Lookup session metadata fields on this application
 declare -a MYARRAY=$($CURLCMD -G $BASEURL/metadata/session/$APP_ID/filters)
@@ -27,7 +28,7 @@ BUILDNUMID=$( echo ${MYARRAY[@]} | jq -r '.filters|map(select(any(.label; contai
 COMMITHASHID=$( echo ${MYARRAY[@]} | jq -r '.filters|map(select(any(.label; contains("Commit Hash")))|.id)[0]' )
 
 #Build the Job Outcome Policy body
-JOP_REQUEST_DATA="{\"application_id\":\"$APP_ID\",\"security_check_filter\":{\"query_by\":\"APP_VERSION_TAG\", \"app_version_tags\":[\"$CI_COMMIT_SHORT_SHA\"]},\"origin\":\"GitHub/Bash\"}"
+JOP_REQUEST_DATA="{\"application_id\":\"$APP_ID\",\"security_check_filter\":{\"query_by\":\"APP_VERSION_TAG\", \"app_version_tags\":[\"$BUILD_NUMBER\"]},\"origin\":\"GitHub/Bash\"}"
 #Check for Job Outcome Policy results on this application
 declare -a MYARRAY=$($CURLCMD -HContent-Type:application/json -d "$JOP_REQUEST_DATA" $BASEURL/securityChecks)
 [[ -n $ACTIONS_STEP_DEBUG ]] && echo "::debug::${MYARRAY[@]}"
@@ -40,7 +41,7 @@ echo 'No Job Outcome Policy found for this application, performing manual thresh
 
 #No Job Outcome Policy exists for this build, so check manually for results
 #Search for vulnerabilities on this application found during this test run
-declare -a MYARRAY=$($CURLCMD -G --data-urlencode "appVersionTags=[$CI_COMMIT_SHORT_SHA]" --data-urlencode "severities=$SEVERITIES" "$BASEURL/traces/$APP_ID/quick")
+declare -a MYARRAY=$($CURLCMD -G --data-urlencode "appVersionTags=[$BUILD_NUMBER]" --data-urlencode "severities=$SEVERITIES" "$BASEURL/traces/$APP_ID/quick")
 [[ -n $ACTIONS_STEP_DEBUG ]] && echo "::debug::${MYARRAY[@]}"
 VULN_COUNT=$( echo ${MYARRAY[@]} | jq -r '.filters[1].count' )
 echo "The vulnerability count is $VULN_COUNT."
