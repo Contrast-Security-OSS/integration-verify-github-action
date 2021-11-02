@@ -3,7 +3,7 @@
 [[ -n $debug ]] && set -x
 
 # Check required variables are defined
-REQUIRED_VARS=(CONTRAST_API_KEY CONTRAST_AUTHORIZATION CONTRAST_ORG_ID APP_NAME)
+REQUIRED_VARS=(INPUT_CONTRAST_API_KEY INPUT_CONTRAST_AUTHORIZATION INPUT_CONTRAST_ORG_ID INPUT_APP_NAME)
 invalid_env=false
 for key in ${REQUIRED_VARS[*]}; do
     if [[ -v "$key" ]]; then continue ; else echo "ERROR: environment variable $key is not set" && invalid_env=true; fi;
@@ -11,17 +11,16 @@ done
 if [ $invalid_env == true ]; then exit 1 ; fi
 
 # Define some variables we'll use several times
-BASEURL="https://${CONTRAST_HOST:-app.contrastsecurity.com}/Contrast/api/ng/$CONTRAST_ORG_ID"
-CURLCMD="curl --silent -HAccept:application/json -HAPI-Key:$CONTRAST_API_KEY -HAuthorization:$CONTRAST_AUTHORIZATION"
-SEVERITIES=${SEVERITIES-CRITICAL,HIGH}
-VULN_COUNT=${VULN_COUNT-0}
-FAIL_THRESHOLD=${FAIL_THRESHOLD-0}
+BASEURL="https://${INPUT_CONTRAST_HOST:-app.contrastsecurity.com}/Contrast/api/ng/$INPUT_CONTRAST_ORG_ID"
+CURLCMD="curl --silent -HAccept:application/json -HAPI-Key:$INPUT_CONTRAST_API_KEY -HAuthorization:$INPUT_CONTRAST_AUTHORIZATION"
+SEVERITIES=${INPUT_SEVERITIES-CRITICAL,HIGH}
+FAIL_THRESHOLD=${INPUT_FAIL_THRESHOLD-0}
 
 #Lookup the application ID of the named application
-declare -a MYARRAY=$($CURLCMD -G --data-urlencode "filterText=$APP_NAME" "$BASEURL/applications/name")
+declare -a MYARRAY=$($CURLCMD -G --data-urlencode "filterText=$INPUT_APP_NAME" "$BASEURL/applications/name")
 APP_ID=$( echo ${MYARRAY[@]} | jq -r '.applications[0].app_id' )
 [[ -n $debug ]] && echo ${MYARRAY[@]}
-echo "The app id for the app called $APP_NAME is $APP_ID. Checking for $SEVERITIES vulnerabilities with commitHash=$CI_COMMIT_SHORT_SHA."
+echo "The app id for the app called $INPUT_APP_NAME is $APP_ID. Checking for $SEVERITIES vulnerabilities with commitHash=$CI_COMMIT_SHORT_SHA."
 
 #Lookup session metadata fields on this application
 declare -a MYARRAY=$($CURLCMD -G $BASEURL/metadata/session/$APP_ID/filters)
