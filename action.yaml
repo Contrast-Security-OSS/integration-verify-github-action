@@ -1,0 +1,34 @@
+name: 'Contrast Verify'
+author: 'andersonshatch'
+description: 'Verify Contrast Application by Job Outcome Policy or Vulnerability Count'
+
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  contrast_api_key:
+    description: 'Contrast User/Service Account API Key'
+    required: true
+  contrast_authorization:
+    description: 'Contrast User/Service Account Authorization Header'
+    required: true
+  contrast_host:
+    description: 'Hostname of your Contrast Teamserver Instance (do not include http/https://)'
+    default: 'app.contrastsecurity.com'
+  contrast_org_id:
+    description: 'Contrast Organization ID'
+    required: true
+  app_name:
+    description: 'Name of the application to verify against'
+    required: true
+  severities:
+    description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
+    default: 'CRITICAL,HIGH'
+  fail_threshold:
+    description: 'Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)'
+    default: '0'
+  
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
