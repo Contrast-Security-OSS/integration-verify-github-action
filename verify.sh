@@ -36,7 +36,7 @@ declare -a MYARRAY=$($CURLCMD -HContent-Type:application/json -d "$JOP_REQUEST_D
 JOP_RESULT=$( echo ${MYARRAY[@]} | jq -r '.security_check.result' )
 JOP_NAME=$( echo ${MYARRAY[@]} | jq -r '.security_check.job_outcome_policy.name' )
 JOP_OUTCOME=$( echo ${MYARRAY[@]} | jq -r '.security_check.job_outcome_policy.outcome' )
-if [ $JOP_RESULT == 'false' ]; then echo "Build gate fails with status $JOP_OUTCOME - Policy '$JOP_NAME' matched" && exit 1; fi #Job Outcome Policy matches this build
+if [ $JOP_RESULT == 'false' ]; then echo "::error::Build gate fails with status $JOP_OUTCOME - Policy '$JOP_NAME' matched" && exit 1; fi #Job Outcome Policy matches this build
 if [ $JOP_RESULT == 'true' ]; then echo "Build gate passes" && exit 0; fi #Job Outcome Policy does not match this build
 echo 'No Job Outcome Policy found for this application, performing manual threshold check...'
 
@@ -48,4 +48,4 @@ VULN_COUNT=$( echo ${MYARRAY[@]} | jq -r '.filters[1].count' )
 echo "The vulnerability count is $VULN_COUNT."
 
 #Fail if there are more vulnerabilities than the defined threshold
-if [ $VULN_COUNT -gt $FAIL_THRESHOLD ]; then exit 1; fi
+if [ $VULN_COUNT -gt $FAIL_THRESHOLD ]; then echo '::error::Build gate fails as this is above thresold' && exit 1; fi
