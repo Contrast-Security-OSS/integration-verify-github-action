@@ -4,4 +4,4 @@ RUN apk add --no-cache bash curl jq
 WORKDIR /opt/contrastverify
 ADD verify.sh verify.sh
 
-ENTRYPOINT ["/bin/bash", "verify.sh"]
+ENTRYPOINT ["/bin/bash", "/opt/contrastverify/verify.sh"]
