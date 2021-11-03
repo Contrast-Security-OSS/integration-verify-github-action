@@ -57,3 +57,9 @@ with:
   contrast_authorization: ${{ secrets.CONTRASTAUTHORIZATION }}
   contrast_org_id: ${{ secrets.CONTRASTORGID }}
 ```
+
+## Development Setup
+1. Run `python -m venv venv` to setup a virtual environment
+1. Run `. venv/bin/activate` to activate the virtual environment
+1. Run `pip install -r requirements-dev.txt` to install development dependencies (will also include app dependencies)
+1. Run `pre-commit install` to setup the pre-commit hook which handles formatting
