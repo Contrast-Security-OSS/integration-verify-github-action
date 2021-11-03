@@ -8,8 +8,7 @@ branding:
 
 inputs:
   build_number:
-    description: 'Build number / application version to check vulnerabilities against'
-    default: '$GITHUB_SHA'
+    description: 'Build number / application version to check vulnerabilities against. Defaults to $GITHUB_SHA.'
   contrast_api_key:
     description: 'Contrast User/Service Account API Key'
     required: true
@@ -23,15 +22,16 @@ inputs:
     description: 'Contrast Organization ID'
     required: true
   app_name:
-    description: 'Name of the application to verify against'
-    required: true
+    description: 'Name of the application to verify against. Required if app_id not passed.'
+  app_id:
+    description: 'ID of the application to verify against. Required if app_name not passed.'
   severities:
     description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
     default: 'CRITICAL,HIGH'
   fail_threshold:
     description: 'Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)'
     default: '0'
-  
+
 runs:
   using: 'docker'
   image: 'Dockerfile'
