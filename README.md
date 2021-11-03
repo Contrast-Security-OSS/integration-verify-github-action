@@ -1,4 +1,4 @@
-# ContrastVerifyAction
+# ContrastAssessVerifyAction
 
 This action verifies an Assess application, applying a Job Outcome Policy or vulnerability threshold to fail the step if there are open vulnerabilities violating the policy/threshold.
 
@@ -48,7 +48,7 @@ Defaults to `0`
 ## Example usage
 
 ```yaml
-uses: andersonshatch/ContrastVerifyAction@main
+uses: andersonshatch/ContrastAssessVerifyAction@main
 with:
   app_name: App_Name_Here
   #app_id: app_uuid_here
