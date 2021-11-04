@@ -18,6 +18,13 @@ def validate_inputs():
         else:
             CONFIG[input] = val
 
+    gh_action.error(
+        "Example vulnerability detected",
+        file="verify.py",
+        start_line=21,
+        title="Example!",
+    )
+
     app_id = gh_action.get_input("APP_ID")
     app_name = gh_action.get_input("APP_NAME")
     if app_id and app_id != "":
