@@ -1,5 +1,6 @@
 backports.entry-points-selectable==1.1.0
 cfgv==3.3.0
+charset-normalizer==2.0.7
 distlib==0.3.2
 filelock==3.0.12
 identify==2.2.11
@@ -7,6 +8,7 @@ nodeenv==1.6.0
 platformdirs==2.1.0
 pre-commit==2.13.0
 PyYAML==5.4.1
+responses==0.15.0
 six==1.16.0
 toml==0.10.2
 virtualenv==20.6.0
