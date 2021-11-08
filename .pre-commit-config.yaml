@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.23.0
+    rev: v2.29.0
     hooks:
     -   id: pyupgrade
         args: [--py39-plus]
@@ -11,11 +11,11 @@ repos:
     hooks:
     -   id: pycln
 -   repo: https://github.com/PyCQA/isort
-    rev: 5.8.0
+    rev: 5.10.0
     hooks:
     -   id: isort
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.0.1
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -23,6 +23,6 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 -   repo: https://github.com/psf/black
-    rev: 21.7b0
+    rev: 21.10b0
     hooks:
     -   id: black
