@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from os import getenv
+from urllib.parse import urlparse
 
 import requests
 from actions_toolkit import core as gh_action
@@ -28,14 +29,23 @@ def validate_inputs():
     else:
         errors.append("(APP_ID or APP_NAME)")
 
+    url = (
+        gh_action.get_input("CONTRAST_URL")
+        or "https://app.contrastsecurity.com/Contrast/api/ng/"
+    )
+    if not url.startswith("https://") and not url.startswith("http://"):
+        errors.append("CONTRAST_URL (must start with http:// or https://)")
+
     if len(errors) != 0:
         gh_action.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
         )
         gh_action.set_failed("Missing required inputs")
 
-    host = gh_action.get_input("CONTRAST_HOST") or "app.contrastsecurity.com"
-    config["BASE_URL"] = f"https://{host}/Contrast/api/ng/{config['CONTRAST_ORG_ID']}/"
+    url_parts = urlparse(url)
+    if url_parts.path != "/Contrast/api/ng/":
+        url = f"{url_parts.scheme}://{url_parts.netloc}/Contrast/api/ng/"
+    config["BASE_URL"] = f"{url}{config['CONTRAST_ORG_ID']}/"
     gh_action.debug(f'Base URL: {config["BASE_URL"]}')
 
     severities = gh_action.get_input("SEVERITIES") or "CRITICAL,HIGH"

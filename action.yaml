@@ -15,9 +15,9 @@ inputs:
   contrast_authorization:
     description: 'Contrast User/Service Account Authorization Header'
     required: true
-  contrast_host:
-    description: 'Hostname of your Contrast Teamserver Instance (do not include http/https://)'
-    default: 'app.contrastsecurity.com'
+  contrast_url:
+    description: 'URL of your Contrast Teamserver Instance (should begin with https:// or http://)'
+    default: 'https://app.contrastsecurity.com'
   contrast_org_id:
     description: 'Contrast Organization ID'
     required: true

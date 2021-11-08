@@ -17,10 +17,11 @@ Defaults to `$GITHUB_SHA`
 
 **Required** Contrast User/Service Account Authorization Header.
 
-## `contrast_host`
+## `contrast_url`
 
-Hostname of your Contrast Teamserver Instance (do not include http/https://)'.
-Defaults to `app.contrastsecurity.com`
+URL of your Contrast Teamserver Instance (should begin with `https://` or `http://`).
+Defaults to `https://app.contrastsecurity.com`
+(`/Contrast/api/ng/` is used automatically)
 
 ## `contrast_org_id`
 
@@ -41,7 +42,7 @@ Defaults to `CRITICAL,HIGH`
 
 ## `fail_threshold`
 
-Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)'
+Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
 Defaults to `0`
 
 
