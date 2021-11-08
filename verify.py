@@ -3,6 +3,7 @@ from os import getenv
 
 import requests
 from actions_toolkit import core as gh_action
+from requests.exceptions import RequestException
 
 REQUIRED_INPUTS = ["CONTRAST_API_KEY", "CONTRAST_AUTHORIZATION", "CONTRAST_ORG_ID"]
 
@@ -59,6 +60,7 @@ class ContrastVerifyAction:
         self._fail_threshold = config["FAIL_THRESHOLD"]
         self._severities = config["SEVERITIES"]
         self._headers = None
+        self._app_id_verified = False
 
     @property
     def teamserver_headers(self):
@@ -75,7 +77,7 @@ class ContrastVerifyAction:
     @property
     def app_id(self):
         """Return the app ID if provided in config, else look it up based on app name and cache it."""
-        if self._app_id:
+        if self._app_id and self._app_id_verified:
             return self._app_id
 
         self.determine_application_id()
@@ -112,6 +114,15 @@ class ContrastVerifyAction:
     def determine_application_id(self):
         """Determine application ID from application name for config."""
         if self._app_id:
+            if not self._app_id_verified:
+                try:
+                    self.get_request(f"applications/{self._app_id}")
+                except RequestException as e:
+                    gh_action.set_failed(
+                        f"Unable to find application with ID {self._app_id} - check the ID and ensure the user account this action uses can access it - {e}"
+                    )
+                self._app_id_verified = True
+
             gh_action.info(f"Using provided application ID {self._app_id}")
             return
 

@@ -1,11 +1,8 @@
 import contextlib
 import io
 import unittest
-from re import match
-from unittest.mock import patch
 
 import responses
-from actions_toolkit.core import ExitCode
 from responses import matchers
 
 from verify import ContrastVerifyAction
@@ -76,6 +73,63 @@ class ActionTestCase(unittest.TestCase):
         # it should log a useful message
         self.assertIn(
             "Connection test failed, please verify credentials (agent credentials will not work) -",
+            out.getvalue(),
+        )
+
+    @responses.activate
+    def test_determine_application_id_validate_exists(self):
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/an_app_uuid",
+            json={},
+            match=[self._header_matcher],
+        )
+
+        self._action = ContrastVerifyAction(
+            {
+                "APP_ID": "an_app_uuid",
+                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+                "CONTRAST_API_KEY": "An_Api_Key",
+                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "BUILD_NUMBER": "123",
+                "FAIL_THRESHOLD": 0,
+                "SEVERITIES": "HIGH,CRITICAL",
+            }
+        )
+
+        self._action.determine_application_id()
+
+    @responses.activate
+    def test_determine_application_id_validate_invalid(self):
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/an_app_uuid",
+            status=403,
+            match=[self._header_matcher],
+        )
+
+        self._action = ContrastVerifyAction(
+            {
+                "APP_ID": "an_app_uuid",
+                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+                "CONTRAST_API_KEY": "An_Api_Key",
+                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "BUILD_NUMBER": "123",
+                "FAIL_THRESHOLD": 0,
+                "SEVERITIES": "HIGH,CRITICAL",
+            }
+        )
+
+        out = io.StringIO()
+        # it should quit
+        with self.assertRaises(SystemExit) as cm:
+            with contextlib.redirect_stdout(out):
+                self._action.determine_application_id()
+        # it should exit non-zero
+        self.assertEqual(cm.exception.code, 1)
+        # it should log a useful message
+        self.assertIn(
+            "Unable to find application with ID an_app_uuid - check the ID and ensure the user account this action uses can access it",
             out.getvalue(),
         )
 
