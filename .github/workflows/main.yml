@@ -22,7 +22,7 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: andersonshatch/ContrastAssessVerifyAction@main
+      - uses: andersonshatch/ContrastAssessVerifyAction@empty-build-number
         with:
           app_name: Kotlin-http4k
           build_number: ''
