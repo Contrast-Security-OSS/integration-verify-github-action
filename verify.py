@@ -54,7 +54,7 @@ def validate_inputs():
     fail_threshold = gh_action.get_input("FAIL_THRESHOLD") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
 
-    input_build_number = gh_action.get_input("BUILD_NUMBER")
+    input_build_number = getenv("INPUT_BUILD_NUMBER")
     if input_build_number != None:
         # Allow empty string to consider all open vulnerabilities
         config["BUILD_NUMBER"] = input_build_number
