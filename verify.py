@@ -54,7 +54,12 @@ def validate_inputs():
     fail_threshold = gh_action.get_input("FAIL_THRESHOLD") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
 
-    config["BUILD_NUMBER"] = gh_action.get_input("BUILD_NUMBER") or getenv("GITHUB_SHA")
+    if gh_action.get_boolean_input("CONSIDER_ALL_OPEN"):
+        config["BUILD_NUMBER"] = ""
+    else:
+        config["BUILD_NUMBER"] = gh_action.get_input("BUILD_NUMBER") or getenv(
+            "GITHUB_SHA"
+        )
 
     return config
 

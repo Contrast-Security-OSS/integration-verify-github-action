@@ -17,33 +17,37 @@ Defaults to `$GITHUB_SHA`
 
 **Required** Contrast User/Service Account Authorization Header.
 
+## `contrast_org_id`
+
+**Required** Contrast Organization ID.
+
 ## `contrast_url`
 
 URL of your Contrast Teamserver Instance (should begin with `https://` or `http://`).
 Defaults to `https://app.contrastsecurity.com`
 (`/Contrast/api/ng/` is used automatically)
 
-## `contrast_org_id`
+## `app_id`
 
-**Required** Contrast Organization ID.
+ID of the application to verify against. **Required** if app_name not passed.
 
 ## `app_name`
 
 Name of the application to verify against. **Required** if app_id not passed.
 
-## `app_id`
+## `consider_all_open`
 
-ID of the application to verify against. **Required** if app_name not passed.
-
-## `severities`
-
-Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy).
-Defaults to `CRITICAL,HIGH`
+If true, all open vulnerabilities will be considered against the job outcome policy or threshold, ignoring the provided build_number.
 
 ## `fail_threshold`
 
 Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
 Defaults to `0`
+
+## `severities`
+
+Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy).
+Defaults to `CRITICAL,HIGH`
 
 
 ## Example usage

@@ -15,22 +15,25 @@ inputs:
   contrast_authorization:
     description: 'Contrast User/Service Account Authorization Header'
     required: true
-  contrast_url:
-    description: 'URL of your Contrast Teamserver Instance (should begin with https:// or http://)'
-    default: 'https://app.contrastsecurity.com'
   contrast_org_id:
     description: 'Contrast Organization ID'
     required: true
-  app_name:
-    description: 'Name of the application to verify against. Required if app_id not passed.'
+  contrast_url:
+    description: 'URL of your Contrast Teamserver Instance (should begin with https:// or http://)'
+    default: 'https://app.contrastsecurity.com'
   app_id:
     description: 'ID of the application to verify against. Required if app_name not passed.'
-  severities:
-    description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
-    default: 'CRITICAL,HIGH'
+  app_name:
+    description: 'Name of the application to verify against. Required if app_id not passed.'
+  consider_all_open:
+    description: 'If true, all open vulnerabilities will be considered against the job outcome policy or threshold, ignoring the provided build_number.'
+    default: 'false'
   fail_threshold:
     description: 'Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)'
     default: '0'
+  severities:
+    description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
+    default: 'CRITICAL,HIGH'
 
 runs:
   using: 'docker'
