@@ -1,4 +1,4 @@
-FROM alpine:3.14
+FROM alpine:3.15.0
 
 RUN apk add --no-cache python3 py3-pip
 ADD requirements.txt requirements.txt
