@@ -22,11 +22,11 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: andersonshatch/ContrastAssessVerifyAction@empty-build-number
+      - uses: andersonshatch/ContrastAssessVerifyAction@re-org-inputs
         with:
-          app_name: Kotlin-http4k
+          apiKey: ${{ secrets.CONTRAST_API_KEY }}
+          orgId: ${{ env.CONTRAST_ORG_ID }}
+          apiUrl: https://apptwo.contrastsecurity.com
+          authHeader: ${{ secrets.contrastAuthorization }}
+          appName: Kotlin-http4k
           #build_number: ''
-          contrast_url: https://apptwo.contrastsecurity.com
-          contrast_api_key: ${{ secrets.contrastApiKey }}
-          contrast_authorization: ${{ secrets.contrastAuthorization }}
-          contrast_org_id: ${{ secrets.contrastOrgId }}
