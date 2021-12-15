@@ -48,11 +48,11 @@ def validate_inputs():
         errors.append("appId or appName")
 
     url = (
-        gh_action.get_input("url")
+        gh_action.get_input("apiUrl")
         or "https://app.contrastsecurity.com/Contrast/api/ng/"
     )
     if not url.startswith("https://") and not url.startswith("http://"):
-        errors.append("url (must start with http:// or https://)")
+        errors.append("apiUrl (must start with http:// or https://)")
 
     if len(errors) != 0:
         gh_action.error(
