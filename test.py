@@ -33,8 +33,8 @@ class ActionTestCase(unittest.TestCase):
             {
                 "APP_NAME": "VerifierTest",
                 "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "CONTRAST_API_KEY": "An_Api_Key",
-                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "API_KEY": "An_Api_Key",
+                "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "123",
                 "FAIL_THRESHOLD": 0,
                 "SEVERITIES": "HIGH,CRITICAL",
@@ -89,8 +89,8 @@ class ActionTestCase(unittest.TestCase):
             {
                 "APP_ID": "an_app_uuid",
                 "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "CONTRAST_API_KEY": "An_Api_Key",
-                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "API_KEY": "An_Api_Key",
+                "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "123",
                 "FAIL_THRESHOLD": 0,
                 "SEVERITIES": "HIGH,CRITICAL",
@@ -112,8 +112,8 @@ class ActionTestCase(unittest.TestCase):
             {
                 "APP_ID": "an_app_uuid",
                 "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "CONTRAST_API_KEY": "An_Api_Key",
-                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "API_KEY": "An_Api_Key",
+                "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "123",
                 "FAIL_THRESHOLD": 0,
                 "SEVERITIES": "HIGH,CRITICAL",
@@ -157,8 +157,8 @@ class ActionTestCase(unittest.TestCase):
             {
                 "APP_NAME": "NonExistentApp",
                 "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "CONTRAST_API_KEY": "An_Api_Key",
-                "CONTRAST_AUTHORIZATION": "Base64Header",
+                "API_KEY": "An_Api_Key",
+                "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "123",
                 "FAIL_THRESHOLD": 0,
                 "SEVERITIES": "HIGH,CRITICAL",

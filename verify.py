@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from base64 import b64encode
 from os import getenv
 from urllib.parse import urlparse
 
@@ -6,35 +7,52 @@ import requests
 from actions_toolkit import core as gh_action
 from requests.exceptions import RequestException
 
-REQUIRED_INPUTS = ["CONTRAST_API_KEY", "CONTRAST_AUTHORIZATION", "CONTRAST_ORG_ID"]
-
 
 def validate_inputs():
     """Populate configuration object or set step to failed if required inputs are not set."""
     errors = []
     config = {}
-    for input in REQUIRED_INPUTS:
-        val = gh_action.get_input(input)
-        if val is None or val == "":
-            errors.append(input)
-        else:
-            config[input] = val
 
-    app_id = gh_action.get_input("APP_ID")
-    app_name = gh_action.get_input("APP_NAME")
+    apiKey = gh_action.get_input("apiKey")
+    if apiKey and apiKey != "":
+        config["API_KEY"] = apiKey
+    else:
+        errors.append("apiKey")
+
+    orgId = gh_action.get_input("orgId")
+    if orgId and orgId != "":
+        config["ORG_ID"] = orgId
+    else:
+        errors.append("orgId")
+
+    authorization = gh_action.get_input("authHeader")
+    username = gh_action.get_input("userName")
+    service_key = gh_action.get_input("serviceKey")
+
+    if authorization and authorization != "":
+        config["AUTHORIZATION"] = authorization
+    elif (username and username != "") and (service_key and service_key != ""):
+        config["AUTHORIZATION"] = str(
+            b64encode(bytes(f"{username}:{service_key}", "UTF-8")), "UTF-8"
+        )
+    else:
+        errors.append("authHeader or (userName and serviceKey)")
+
+    app_id = gh_action.get_input("appId")
+    app_name = gh_action.get_input("appName")
     if app_id and app_id != "":
         config["APP_ID"] = app_id
     elif app_name and app_name != "":
         config["APP_NAME"] = app_name
     else:
-        errors.append("(APP_ID or APP_NAME)")
+        errors.append("appId or appName")
 
     url = (
-        gh_action.get_input("CONTRAST_URL")
+        gh_action.get_input("url")
         or "https://app.contrastsecurity.com/Contrast/api/ng/"
     )
     if not url.startswith("https://") and not url.startswith("http://"):
-        errors.append("CONTRAST_URL (must start with http:// or https://)")
+        errors.append("url (must start with http:// or https://)")
 
     if len(errors) != 0:
         gh_action.error(
@@ -45,16 +63,16 @@ def validate_inputs():
     url_parts = urlparse(url)
     if url_parts.path != "/Contrast/api/ng/":
         url = f"{url_parts.scheme}://{url_parts.netloc}/Contrast/api/ng/"
-    config["BASE_URL"] = f"{url}{config['CONTRAST_ORG_ID']}/"
+    config["BASE_URL"] = f"{url}{config['ORG_ID']}/"
     gh_action.debug(f'Base URL: {config["BASE_URL"]}')
 
-    severities = gh_action.get_input("SEVERITIES") or "CRITICAL,HIGH"
+    severities = gh_action.get_input("severities") or "CRITICAL,HIGH"
     config["SEVERITIES"] = severities.upper()
 
-    fail_threshold = gh_action.get_input("FAIL_THRESHOLD") or 0
+    fail_threshold = gh_action.get_input("failThreshold") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
 
-    config["BUILD_NUMBER"] = gh_action.get_input("BUILD_NUMBER") or getenv("GITHUB_SHA")
+    config["BUILD_NUMBER"] = gh_action.get_input("buildNumber") or getenv("GITHUB_SHA")
 
     return config
 
@@ -65,8 +83,8 @@ class ContrastVerifyAction:
         self._app_name = config.get("APP_NAME")
         self._base_url = config["BASE_URL"]
         self._build_number = config["BUILD_NUMBER"]
-        self._contrast_api_key = config["CONTRAST_API_KEY"]
-        self._contrast_authorization = config["CONTRAST_AUTHORIZATION"]
+        self._contrast_api_key = config["API_KEY"]
+        self._contrast_authorization = config["AUTHORIZATION"]
         self._fail_threshold = config["FAIL_THRESHOLD"]
         self._severities = config["SEVERITIES"]
         self._headers = None

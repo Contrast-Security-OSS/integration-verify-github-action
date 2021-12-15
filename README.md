@@ -4,46 +4,54 @@ This action verifies an Assess application, applying a Job Outcome Policy or vul
 
 ## Inputs
 
-## `build_number`
+## `apiKey`
+
+**Required** Contrast User/Service Account API Key.
+
+## `orgId`
+
+**Required** Contrast Organization ID.
+
+## `apiUrl`
+
+URL of your Contrast Teamserver Instance (should begin with `https://` or `http://`).
+Defaults to `https://app.contrastsecurity.com`
+(`/Contrast/api/ng/` is used automatically if omitted)
+
+## `serviceKey`
+
+Contrast User/Service Account service key. Required if authorization not passed.
+
+## `authHeader`
+
+Contrast User/Service Account Authorization Header. **Required** if username and service key not passed.
+
+## `userName`
+
+Contrast User/Service Account username. Required if authorization not passed.
+
+## `appId`
+
+ID of the application to verify against. **Required** if app_name not passed.
+
+## `appName`
+
+Name of the application to verify against. **Required** if app_id not passed.
+
+## `buildNumber`
 
 The build number or app version tag to filter vulnerabilities by.
 Defaults to `$GITHUB_SHA`
 
-## `contrast_api_key`
+## `failThreshold`
 
-**Required** Contrast User/Service Account API Key.
-
-## `contrast_authorization`
-
-**Required** Contrast User/Service Account Authorization Header.
-
-## `contrast_url`
-
-URL of your Contrast Teamserver Instance (should begin with `https://` or `http://`).
-Defaults to `https://app.contrastsecurity.com`
-(`/Contrast/api/ng/` is used automatically)
-
-## `contrast_org_id`
-
-**Required** Contrast Organization ID.
-
-## `app_name`
-
-Name of the application to verify against. **Required** if app_id not passed.
-
-## `app_id`
-
-ID of the application to verify against. **Required** if app_name not passed.
+Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
+Defaults to `0`
 
 ## `severities`
 
 Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy).
 Defaults to `CRITICAL,HIGH`
-
-## `fail_threshold`
-
-Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
-Defaults to `0`
 
 
 ## Example usage
@@ -51,12 +59,12 @@ Defaults to `0`
 ```yaml
 uses: andersonshatch/ContrastAssessVerifyAction@main
 with:
-  app_name: App_Name_Here
-  #app_id: app_uuid_here
-  contrast_host: app.contrastsecurity.com
-  contrast_api_key: ${{ secrets.CONTRASTAPIKEY }}
-  contrast_authorization: ${{ secrets.CONTRASTAUTHORIZATION }}
-  contrast_org_id: ${{ secrets.CONTRASTORGID }}
+  apiKey: ${{ secrets.CONTRAST_API_KEY }}
+  orgId: ${{ env.CONTRAST_ORG_ID }}
+  apiUrl: app.contrastsecurity.com
+  authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
+  appName: App_Name_Here
+  #appId: app_uuid_here
 ```
 
 ## Development Setup
