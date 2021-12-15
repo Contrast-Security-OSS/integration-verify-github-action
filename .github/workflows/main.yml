@@ -27,6 +27,6 @@ jobs:
           apiKey: ${{ secrets.CONTRAST_API_KEY }}
           orgId: ${{ secrets.CONTRAST_ORG_ID }}
           apiUrl: https://apptwo.contrastsecurity.com
-          authHeader: ${{ secrets.contrastAuthorization }}
+          authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
           appName: Kotlin-http4k
           #build_number: ''
