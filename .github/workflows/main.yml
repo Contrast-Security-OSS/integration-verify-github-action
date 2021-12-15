@@ -25,7 +25,7 @@ jobs:
       - uses: andersonshatch/ContrastAssessVerifyAction@re-org-inputs
         with:
           apiKey: ${{ secrets.CONTRAST_API_KEY }}
-          orgId: ${{ env.CONTRAST_ORG_ID }}
+          orgId: ${{ secrets.CONTRAST_ORG_ID }}
           apiUrl: https://apptwo.contrastsecurity.com
           authHeader: ${{ secrets.contrastAuthorization }}
           appName: Kotlin-http4k
