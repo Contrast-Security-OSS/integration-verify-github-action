@@ -139,6 +139,16 @@ class ContrastVerifyAction:
                 f"Connection test failed, please verify credentials (agent credentials will not work) - {e}"
             )
 
+    def validate_organization(self):
+        """Determine if we can successfully see the specified organization, else mark the step failed."""
+        try:
+            response = self.get_request("organizations/")
+            response.json()
+        except Exception as e:
+            gh_action.set_failed(
+                f"Organization test failed, please verify organization ID and credentials (agent credentials will not work) - {e}"
+            )
+
     def determine_application_id(self):
         """Determine application ID from application name for config."""
         if self._app_id:
@@ -242,5 +252,6 @@ if __name__ == "__main__":
     config = validate_inputs()
     action = ContrastVerifyAction(config)
     action.validate_connection()
+    action.validate_organization()
     action.determine_application_id()
     action.verify_application()

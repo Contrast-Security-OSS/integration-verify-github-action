@@ -77,6 +77,41 @@ class ActionTestCase(unittest.TestCase):
         )
 
     @responses.activate
+    def test_validate_organization_valid(self):
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/organizations/",
+            json={},
+            status=200,
+            match=[self._header_matcher],
+        )
+
+        # it should succeed
+        self._action.validate_organization()
+
+    @responses.activate
+    def test_validate_connection_invalid(self):
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/organizations/",
+            status=403,
+            match=[self._header_matcher],
+        )
+
+        out = io.StringIO()
+        # it should quit
+        with self.assertRaises(SystemExit) as cm:
+            with contextlib.redirect_stdout(out):
+                self._action.validate_organization()
+        # it should exit non-zero
+        self.assertEqual(cm.exception.code, 1)
+        # it should log a useful message
+        self.assertIn(
+            "Organization test failed, please verify organization ID and credentials (agent credentials will not work) -",
+            out.getvalue(),
+        )
+
+    @responses.activate
     def test_determine_application_id_validate_exists(self):
         responses.add(
             responses.GET,
