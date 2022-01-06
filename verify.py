@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from base64 import b64encode
-from os import getenv
 from urllib.parse import urlparse
 
 import requests
@@ -54,6 +53,13 @@ def validate_inputs():
     if not url.startswith("https://") and not url.startswith("http://"):
         errors.append("apiUrl (must start with http:// or https://)")
 
+    job_start_time = gh_action.get_input("jobStartTime")
+    if job_start_time != "":
+        try:
+            config["JOB_START_TIME"] = int(job_start_time)
+        except ValueError:
+            errors.append("jobStartTime (must be a number)")
+
     if len(errors) != 0:
         gh_action.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
@@ -72,7 +78,7 @@ def validate_inputs():
     fail_threshold = gh_action.get_input("failThreshold") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
 
-    config["BUILD_NUMBER"] = gh_action.get_input("buildNumber") or getenv("GITHUB_SHA")
+    config["BUILD_NUMBER"] = gh_action.get_input("buildNumber")
 
     return config
 
@@ -86,6 +92,7 @@ class ContrastVerifyAction:
         self._contrast_api_key = config["API_KEY"]
         self._contrast_authorization = config["AUTHORIZATION"]
         self._fail_threshold = config["FAIL_THRESHOLD"]
+        self._job_start_time = config.get("JOB_START_TIME")
         self._severities = config["SEVERITIES"]
         self._headers = None
         self._app_id_verified = False
@@ -179,17 +186,23 @@ class ContrastVerifyAction:
 
     def perform_security_check(self):
         """Call the security check endpoint and return job outcome policy data."""
-        gh_action.info(f"Using app version tags: [{self._build_number}]")
+        version_tags = []
+        if self._build_number != "":
+            # only add build_number to the array if it is not empty, preventing send of one element with empty string [""]
+            gh_action.info(f"Using app version tags: [{self._build_number}]")
+            version_tags.append(self._build_number)
+        body = {
+            "application_id": self.app_id,
+            "job_start_time": self._job_start_time,
+            "security_check_filter": {
+                "query_by": "APP_VERSION_TAG",
+                "app_version_tags": version_tags,
+            },
+            "origin": "GitHub/Python",
+        }
         response = self.post_request(
             "securityChecks",
-            {
-                "application_id": self.app_id,
-                "security_check_filter": {
-                    "query_by": "APP_VERSION_TAG",
-                    "app_version_tags": [self._build_number],
-                },
-                "origin": "GitHub/Python",
-            },
+            body,
         )
         return response.json()
 

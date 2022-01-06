@@ -225,6 +225,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -265,6 +266,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -311,6 +313,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -340,6 +343,53 @@ class ActionTestCase(unittest.TestCase):
         )
 
     @responses.activate
+    def test_verify_application_with_blank_build_number_succeeding_job_outcome_policy(
+        self,
+    ):
+        # Mainly want to verify that if build_number is blank, an empty array is sent rather than [""]
+        responses.add(
+            responses.POST,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/securityChecks",
+            status=200,
+            json={"security_check": {"result": True}},
+            match=[
+                self._header_matcher,
+                matchers.json_params_matcher(
+                    {
+                        "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
+                        "security_check_filter": {
+                            "app_version_tags": [],
+                            "query_by": "APP_VERSION_TAG",
+                        },
+                        "origin": "GitHub/Python",
+                    }
+                ),
+            ],
+        )
+
+        self._action = ContrastVerifyAction(
+            {
+                "APP_NAME": "VerifierTest",
+                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+                "API_KEY": "An_Api_Key",
+                "AUTHORIZATION": "Base64Header",
+                "BUILD_NUMBER": "",
+                "FAIL_THRESHOLD": 0,
+                "SEVERITIES": "HIGH,CRITICAL",
+            }
+        )
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self._action.verify_application()
+        # it should log a useful message
+        self.assertIn(
+            "Step passes matching policy",
+            out.getvalue(),
+        )
+
+    @responses.activate
     def test_verify_application_with_no_job_outcome_policy_below_threshold(
         self,
     ):
@@ -353,6 +403,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -404,6 +455,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
+                        "job_start_time": None,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
