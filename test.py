@@ -90,7 +90,7 @@ class ActionTestCase(unittest.TestCase):
         self._action.validate_organization()
 
     @responses.activate
-    def test_validate_connection_invalid(self):
+    def test_validate_organization_invalid(self):
         responses.add(
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/organizations/",
