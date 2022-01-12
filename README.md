@@ -41,12 +41,15 @@ Name of the application to verify against. **Required** if app_id not passed.
 ## `buildNumber`
 
 The build number or app version tag to filter vulnerabilities by.
-Defaults to `$GITHUB_SHA`
 
 ## `failThreshold`
 
 Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
 Defaults to `0`
+
+## `jobStartTime`
+
+Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch)
 
 ## `severities`
 

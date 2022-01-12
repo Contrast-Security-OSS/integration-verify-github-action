@@ -27,10 +27,12 @@ inputs:
   appName:
     description: 'Name of the application to verify against. Required if app_id not passed.'
   buildNumber:
-    description: 'Build number / application version to check vulnerabilities against. Defaults to $GITHUB_SHA.'
+    description: 'Build number / application version to check vulnerabilities against.'
   failThreshold:
     description: 'Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)'
     default: '0'
+  jobStartTime:
+    description: 'Filter vulnerabilities first found after this timestamp (formatted in milliseconds since the epoch)'
   severities:
     description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
     default: 'CRITICAL,HIGH'
