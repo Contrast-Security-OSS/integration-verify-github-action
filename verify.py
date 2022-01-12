@@ -213,6 +213,8 @@ class ContrastVerifyAction:
             {
                 "severities": self._severities,
                 "appVersionTags": [self._build_number],
+                "startDate": self._job_start_time,
+                "timestampFilter": "FIRST",
             },
         )
         return response.json()

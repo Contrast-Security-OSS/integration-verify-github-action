@@ -426,7 +426,11 @@ class ActionTestCase(unittest.TestCase):
             match=[
                 self._header_matcher,
                 matchers.query_param_matcher(
-                    {"severities": "HIGH,CRITICAL", "appVersionTags": "123"}
+                    {
+                        "severities": "HIGH,CRITICAL",
+                        "appVersionTags": "123",
+                        "timestampFilter": "FIRST",
+                    }
                 ),
             ],
         )
@@ -478,7 +482,11 @@ class ActionTestCase(unittest.TestCase):
             match=[
                 self._header_matcher,
                 matchers.query_param_matcher(
-                    {"severities": "HIGH,CRITICAL", "appVersionTags": "123"}
+                    {
+                        "severities": "HIGH,CRITICAL",
+                        "appVersionTags": "123",
+                        "timestampFilter": "FIRST",
+                    }
                 ),
             ],
         )
