@@ -59,6 +59,8 @@ def validate_inputs():
             config["JOB_START_TIME"] = int(job_start_time)
         except ValueError:
             errors.append("jobStartTime (must be a number)")
+    else:
+        config["JOB_START_TIME"] = 0
 
     if len(errors) != 0:
         gh_action.error(

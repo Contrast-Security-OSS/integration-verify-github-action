@@ -49,7 +49,7 @@ Defaults to `0`
 
 ## `jobStartTime`
 
-Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch)
+Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch). Defaults to `0`
 
 ## `severities`
 

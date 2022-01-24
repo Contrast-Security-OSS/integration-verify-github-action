@@ -33,6 +33,7 @@ inputs:
     default: '0'
   jobStartTime:
     description: 'Filter vulnerabilities first found after this timestamp (formatted in milliseconds since the epoch)'
+    default: '0'
   severities:
     description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
     default: 'CRITICAL,HIGH'
