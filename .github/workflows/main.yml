@@ -30,4 +30,4 @@ jobs:
           authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
           appName: Kotlin-http4k
           #build_number: ''
-          jobStartTime: 1635785580000
+          jobStartTime: 1635785579999
