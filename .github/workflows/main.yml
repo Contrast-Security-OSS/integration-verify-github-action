@@ -23,7 +23,11 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Define job start time
-        run: python3 -c 'import time^J^Jn = int(round(time.time() * 1000))^Jprint(f"::set-output name=jobStartTime::{n}")'
+        run: |
+          import time
+          n = int(round(time.time() * 1000))
+          print(f"::set-output name=jobStartTime::{n}")
+        shell: python
         id: set-job-start-time
       - uses: andersonshatch/ContrastAssessVerifyAction@job-start-time
         with:
