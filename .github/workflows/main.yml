@@ -22,6 +22,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Define job start time
+        run: python3 -c 'import time^J^Jn = int(round(time.time() * 1000))^Jprint(f"::set-output name=jobStartTime::{n}")'
+        id: set-job-start-time
       - uses: andersonshatch/ContrastAssessVerifyAction@job-start-time
         with:
           apiKey: ${{ secrets.CONTRAST_API_KEY }}
@@ -30,4 +33,4 @@ jobs:
           authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
           appName: Kotlin-http4k
           #build_number: ''
-          jobStartTime: 1635785579999
+          jobStartTime: "${{ steps.set-job-start-time.outputs.jobStartTime }}"
