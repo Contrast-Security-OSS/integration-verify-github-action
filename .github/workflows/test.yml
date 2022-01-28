@@ -27,6 +27,8 @@
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
+          cache: 'pip'
+          cache-dependency-path: requirements-dev.txt
       - name: Install dev dependencies
         run: pip install -r requirements-dev.txt
       - name: Restore pre-commit environment from cache
