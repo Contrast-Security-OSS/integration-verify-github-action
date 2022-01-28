@@ -1,4 +1,4 @@
-actions-toolkit==0.1.12
+actions-toolkit==0.1.13
 certifi==2021.10.8
 charset-normalizer==2.0.10
 idna==3.3
