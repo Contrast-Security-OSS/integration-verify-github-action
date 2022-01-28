@@ -6,7 +6,7 @@ filelock==3.4.2
 identify==2.4.6
 nodeenv==1.6.0
 platformdirs==2.4.1
-pre-commit==2.16.0
+pre-commit==2.17.0
 PyYAML==6.0
 responses==0.17.0
 six==1.16.0
