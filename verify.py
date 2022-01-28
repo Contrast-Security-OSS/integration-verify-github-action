@@ -59,8 +59,6 @@ def validate_inputs():
             config["JOB_START_TIME"] = int(job_start_time)
         except ValueError:
             errors.append("jobStartTime (must be a number)")
-    else:
-        config["JOB_START_TIME"] = 0
 
     if len(errors) != 0:
         gh_action.error(
@@ -94,10 +92,11 @@ class ContrastVerifyAction:
         self._contrast_api_key = config["API_KEY"]
         self._contrast_authorization = config["AUTHORIZATION"]
         self._fail_threshold = config["FAIL_THRESHOLD"]
-        self._job_start_time = config.get("JOB_START_TIME")
+        self._job_start_time = config.get("JOB_START_TIME", 0)
         self._severities = config["SEVERITIES"]
         self._headers = None
         self._app_id_verified = False
+        self._job_start_time_provided = "JOB_START_TIME" in config
 
     @property
     def teamserver_headers(self):
@@ -232,9 +231,13 @@ class ContrastVerifyAction:
             ]
             jop_outcome = jop_policy["outcome"]
             jop_name = jop_policy["name"]
-            if jop_policy["opt_into_query"] is False:
+            if self._build_number and jop_policy["opt_into_query"] is False:
                 gh_action.info(
                     f'Matching policy "{jop_name}" is not configured to apply the "query vulnerabilities by selection from the plugin when filtering vulnerabilities" option, this means all open vulnerabilities will be considered, not just those from the build_number input.'
+                )
+            if not self._job_start_time_provided and jop_policy["is_job_start_time"]:
+                gh_action.info(
+                    f'Matching policy "{jop_name}" has job start time configured, but no job start time was provided, so 0 was passed to consider all open vulnerabilities.'
                 )
 
             gh_action.set_failed(

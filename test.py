@@ -225,7 +225,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -258,6 +258,7 @@ class ActionTestCase(unittest.TestCase):
                         "outcome": "FAILED",
                         "name": "Test Job Outcome Policy",
                         "opt_into_query": True,
+                        "is_job_start_time": True,
                     },
                 }
             },
@@ -266,7 +267,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -305,6 +306,7 @@ class ActionTestCase(unittest.TestCase):
                         "outcome": "FAILED",
                         "name": "Test Job Outcome Policy",
                         "opt_into_query": False,
+                        "is_job_start_time": True,
                     },
                 }
             },
@@ -313,7 +315,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -334,6 +336,10 @@ class ActionTestCase(unittest.TestCase):
         # it should warn that all vulnerabilities are being considered
         self.assertIn(
             'Matching policy "Test Job Outcome Policy" is not configured to apply the "query vulnerabilities by selection from the plugin when filtering vulnerabilities" option, this means all open vulnerabilities will be considered, not just those from the build_number input.',
+            out.getvalue(),
+        )
+        self.assertIn(
+            'Matching policy "Test Job Outcome Policy" has job start time configured, but no job start time was provided, so 0 was passed to consider all open vulnerabilities.',
             out.getvalue(),
         )
         # it should log a useful message
@@ -357,7 +363,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": [],
                             "query_by": "APP_VERSION_TAG",
@@ -403,7 +409,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -430,6 +436,7 @@ class ActionTestCase(unittest.TestCase):
                         "severities": "HIGH,CRITICAL",
                         "appVersionTags": "123",
                         "timestampFilter": "FIRST",
+                        "startDate": "0",
                     }
                 ),
             ],
@@ -459,7 +466,7 @@ class ActionTestCase(unittest.TestCase):
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
-                        "job_start_time": None,
+                        "job_start_time": 0,
                         "security_check_filter": {
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
@@ -486,6 +493,7 @@ class ActionTestCase(unittest.TestCase):
                         "severities": "HIGH,CRITICAL",
                         "appVersionTags": "123",
                         "timestampFilter": "FIRST",
+                        "startDate": "0",
                     }
                 ),
             ],
