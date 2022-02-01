@@ -40,4 +40,4 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'andersonshatch:contrastverifyaction'
+  image: 'docker://andersonshatch:contrastverifyaction'
