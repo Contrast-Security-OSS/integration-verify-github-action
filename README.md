@@ -64,7 +64,7 @@ uses: andersonshatch/ContrastAssessVerifyAction@main
 with:
   apiKey: ${{ secrets.CONTRAST_API_KEY }}
   orgId: ${{ env.CONTRAST_ORG_ID }}
-  apiUrl: app.contrastsecurity.com
+  apiUrl: https://app.contrastsecurity.com
   authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
   appName: App_Name_Here
   #appId: app_uuid_here
