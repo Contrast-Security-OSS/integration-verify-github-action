@@ -6,6 +6,8 @@ import requests
 from actions_toolkit import core as gh_action
 from requests.exceptions import RequestException
 
+from output_helper import OutputHelper
+
 
 def validate_inputs():
     """Populate configuration object or set step to failed if required inputs are not set."""
@@ -60,17 +62,18 @@ def validate_inputs():
         except ValueError:
             errors.append("jobStartTime (must be a number)")
 
+    output_helper = OutputHelper()
     if len(errors) != 0:
-        gh_action.error(
+        output_helper.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
         )
-        gh_action.set_failed("Missing required inputs")
+        output_helper.set_failed("Missing required inputs")
 
     url_parts = urlparse(url)
     if url_parts.path != "/Contrast/api/ng/":
         url = f"{url_parts.scheme}://{url_parts.netloc}/Contrast/api/ng/"
     config["BASE_URL"] = f"{url}{config['ORG_ID']}/"
-    gh_action.debug(f'Base URL: {config["BASE_URL"]}')
+    output_helper.debug(f'Base URL: {config["BASE_URL"]}')
 
     severities = gh_action.get_input("severities") or "CRITICAL,HIGH"
     config["SEVERITIES"] = severities.upper()
@@ -97,6 +100,7 @@ class ContrastVerifyAction:
         self._headers = None
         self._app_id_verified = False
         self._job_start_time_provided = "JOB_START_TIME" in config
+        self._output_helper = OutputHelper()
 
     @property
     def teamserver_headers(self):
@@ -121,7 +125,7 @@ class ContrastVerifyAction:
 
     def get_request(self, path, parameters={}):
         """Send a GET request to TeamServer."""
-        gh_action.debug(f"GET {path} {parameters}")
+        self._output_helper.debug(f"GET {path} {parameters}")
         response = requests.get(
             self._base_url + path, params=parameters, headers=self.teamserver_headers
         )
@@ -130,7 +134,7 @@ class ContrastVerifyAction:
 
     def post_request(self, path, body):
         """Send a POST request to TeamServer."""
-        gh_action.debug(f"POST {path}")
+        self._output_helper.debug(f"POST {path}")
         response = requests.post(
             self._base_url + path, json=body, headers=self.teamserver_headers
         )
@@ -143,7 +147,7 @@ class ContrastVerifyAction:
             response = self.get_request("profile/")
             response.json()
         except Exception as e:
-            gh_action.set_failed(
+            self._output_helper.set_failed(
                 f"Connection test failed, please verify credentials (agent credentials will not work) - {e}"
             )
 
@@ -153,7 +157,7 @@ class ContrastVerifyAction:
             response = self.get_request("organizations/")
             response.json()
         except Exception as e:
-            gh_action.set_failed(
+            self._output_helper.set_failed(
                 f"Organization test failed, please verify organization ID and credentials (agent credentials will not work) - {e}"
             )
 
@@ -164,12 +168,12 @@ class ContrastVerifyAction:
                 try:
                     self.get_request(f"applications/{self._app_id}")
                 except RequestException as e:
-                    gh_action.set_failed(
+                    self._output_helper.set_failed(
                         f"Unable to find application with ID {self._app_id} - check the ID and ensure the user account this action uses can access it - {e}"
                     )
                 self._app_id_verified = True
 
-            gh_action.info(f"Using provided application ID {self._app_id}")
+            self._output_helper.info(f"Using provided application ID {self._app_id}")
             return
 
         response = self.get_request(f"applications/name?filterText={self._app_name}")
@@ -178,19 +182,21 @@ class ContrastVerifyAction:
             filter(lambda app: app["name"] == self._app_name, applications)
         )
         if len(matching_named_apps) != 1:
-            gh_action.set_failed(
+            self._output_helper.set_failed(
                 f'Could not match one app with name "{self._app_name}", found {len(matching_named_apps)}, consider using APP_ID input instead.'
             )
         else:
             self._app_id = matching_named_apps[0]["app_id"]
-            gh_action.info(f'Application ID for "{self._app_name}" is {self._app_id}')
+            self._output_helper.info(
+                f'Application ID for "{self._app_name}" is {self._app_id}'
+            )
 
     def perform_security_check(self):
         """Call the security check endpoint and return job outcome policy data."""
         version_tags = []
         if self._build_number != "":
             # only add build_number to the array if it is not empty, preventing send of one element with empty string [""]
-            gh_action.info(f"Using app version tags: [{self._build_number}]")
+            self._output_helper.info(f"Using app version tags: [{self._build_number}]")
             version_tags.append(self._build_number)
         body = {
             "application_id": self.app_id,
@@ -223,7 +229,7 @@ class ContrastVerifyAction:
     def verify_application(self):
         # First check for a configured job outcome policy defined in TeamServer
         job_outcome_policy_result = self.perform_security_check()
-        gh_action.debug(job_outcome_policy_result)
+        self._output_helper.debug(job_outcome_policy_result)
         security_check_result = job_outcome_policy_result["security_check"]["result"]
         if security_check_result is False:
             jop_policy = job_outcome_policy_result["security_check"][
@@ -232,26 +238,26 @@ class ContrastVerifyAction:
             jop_outcome = jop_policy["outcome"]
             jop_name = jop_policy["name"]
             if self._build_number and jop_policy["opt_into_query"] is False:
-                gh_action.info(
+                self._output_helper.info(
                     f'Matching policy "{jop_name}" is not configured to apply the "query vulnerabilities by selection from the plugin when filtering vulnerabilities" option, this means all open vulnerabilities will be considered, not just those from the build_number input.'
                 )
             if not self._job_start_time_provided and jop_policy["is_job_start_time"]:
-                gh_action.info(
+                self._output_helper.info(
                     f'Matching policy "{jop_name}" has job start time configured, but no job start time was provided, so 0 was passed to consider all open vulnerabilities.'
                 )
 
-            gh_action.set_failed(
+            self._output_helper.set_failed(
                 f'Contrast verify gate fails with status {jop_outcome} - policy "{jop_name}"'
             )
         elif security_check_result is True:
-            gh_action.info("Step passes matching policy")
+            self._output_helper.info("Step passes matching policy")
         else:
             # At this point, there is no matching job outcome policy in TeamServer, so query the open vulnerability count instead
-            gh_action.info(
+            self._output_helper.info(
                 "No matching job outcome policy, checking vulnerabilities against threshold..."
             )
             response = self.fetch_vulnerability_count()
-            gh_action.debug(response)
+            self._output_helper.debug(response)
             open_vulnerabilities_data = next(
                 filter(
                     lambda filter: filter["filterType"] == "OPEN", response["filters"]
@@ -259,11 +265,11 @@ class ContrastVerifyAction:
             )
             open_vulnerabilities = open_vulnerabilities_data["count"]
             if open_vulnerabilities > self._fail_threshold:
-                gh_action.set_failed(
+                self._output_helper.set_failed(
                     f"The vulnerability count is {open_vulnerabilities} - Contrast verify gate fails as this is above threshold (threshold allows {self._fail_threshold})"
                 )
             else:
-                gh_action.info(
+                self._output_helper.info(
                     f"The vulnerability count is {open_vulnerabilities} (below threshold)"
                 )
 
