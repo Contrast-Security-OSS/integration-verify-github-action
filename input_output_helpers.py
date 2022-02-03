@@ -4,6 +4,37 @@ import sys
 from actions_toolkit import core as gh_action
 
 
+class InputHelper:
+    """Helper class for getting inputs/environment variables"""
+
+    @staticmethod
+    def get_input(name):
+        """
+        Check the environment for a named input or variable of supported formats.
+        Name should be in the SCREAMING_SNAKE_CASE format.
+
+        For example, given the name `AUTH_HEADER`, the following environment variables will be checked in order:
+        - `INPUT_AUTHHEADER` (GitHub Actions format)
+        - `AUTH_HEADER`
+        - `CONTRAST_AUTH_HEADER`
+
+        :param name: name of the input/environment variable to retrieve value for
+        :return: value of the named input/environment variable, or None if no matches
+        """
+        gh_action_format = f'INPUT_{name.replace("_", "")}'
+        if gh_action_format in os.environ:
+            return os.getenv(gh_action_format)
+
+        if name in os.environ:
+            return os.getenv(name)
+
+        contrast_prefix_format = f"CONTRAST_{name}"
+        if contrast_prefix_format in os.environ:
+            return os.getenv(contrast_prefix_format)
+
+        return None
+
+
 class OutputHelper:
     """Helper class to format output for GitHub Actions or other CI/CD tools"""
 
