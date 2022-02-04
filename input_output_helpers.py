@@ -39,7 +39,7 @@ class OutputHelper:
     """Helper class to format output for GitHub Actions or other CI/CD tools"""
 
     def __init__(self) -> None:
-        if "true" == os.getenv("GITHUB_ACTION"):
+        if "true" == os.getenv("GITHUB_ACTIONS"):
             self.debug = gh_action.debug
             self.error = gh_action.error
             self.info = gh_action.info
