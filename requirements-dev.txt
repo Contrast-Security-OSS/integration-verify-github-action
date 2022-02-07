@@ -11,6 +11,6 @@ PyYAML==6.0
 responses==0.18.0
 six==1.16.0
 toml==0.10.2
-virtualenv==20.13.0
+virtualenv==20.13.1
 
 -r requirements.txt
