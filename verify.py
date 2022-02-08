@@ -55,7 +55,7 @@ def validate_inputs():
         errors.append("apiUrl (must start with http:// or https://)")
 
     job_start_time = InputHelper.get_input("JOB_START_TIME")
-    if job_start_time != "":
+    if job_start_time is not None and job_start_time != "":
         try:
             config["JOB_START_TIME"] = int(job_start_time)
         except ValueError:
