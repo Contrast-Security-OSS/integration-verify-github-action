@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "docker-run",
+            "label": "docker-run: debug",
+            "dependsOn": [
+                "docker-build"
+            ],
+            "dockerRun": {
+                "containerName": "contrast-assess-verify",
+                "envFiles": [
+                    ".env"
+                ]
+            },
+            "python": {
+                "args": [
+                    "run",
+                    "--host",
+                    "0.0.0.0",
+                    "--port",
+                    "5000"
+                ],
+                "file": "verify.py"
+            }
+        },
+        {
+            "label": "docker-build",
+            "type": "docker-build",
+            "platform": "python"
+        }
+    ]
+}
