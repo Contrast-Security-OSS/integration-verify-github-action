@@ -40,4 +40,4 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://ghcr.io/andersonshatch/integration-verify:develop'
