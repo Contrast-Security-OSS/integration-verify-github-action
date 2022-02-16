@@ -2,7 +2,7 @@ backports.entry-points-selectable==1.1.1
 cfgv==3.3.1
 charset-normalizer==2.0.12
 distlib==0.3.4
-filelock==3.4.2
+filelock==3.5.1
 identify==2.4.10
 nodeenv==1.6.0
 platformdirs==2.5.0
