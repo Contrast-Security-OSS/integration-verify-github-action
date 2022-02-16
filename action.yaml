@@ -1,5 +1,4 @@
 name: 'Contrast Verify'
-author: 'andersonshatch'
 description: 'Verify Contrast Application by Job Outcome Policy or Vulnerability Count'
 
 branding:

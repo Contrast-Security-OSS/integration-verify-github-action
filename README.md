@@ -60,7 +60,7 @@ Defaults to `CRITICAL,HIGH`
 ## Example usage
 
 ```yaml
-uses: andersonshatch/ContrastAssessVerifyAction@main
+uses: Contrast-Security-OSS/integration-verify-github-action@main
 with:
   apiKey: ${{ secrets.CONTRAST_API_KEY }}
   orgId: ${{ env.CONTRAST_ORG_ID }}
