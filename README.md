@@ -3,58 +3,20 @@
 This action verifies an Assess application, applying a Job Outcome Policy or vulnerability threshold to fail the step if there are open vulnerabilities violating the policy/threshold.
 
 ## Inputs
-
-## `apiKey`
-
-**Required** Contrast User/Service Account API Key.
-
-## `orgId`
-
-**Required** Contrast Organization ID.
-
-## `apiUrl`
-
-URL of your Contrast Teamserver Instance (should begin with `https://` or `http://`).
-Defaults to `https://app.contrastsecurity.com`
-(`/Contrast/api/ng/` is used automatically if omitted)
-
-## `serviceKey`
-
-Contrast User/Service Account service key. Required if authorization not passed.
-
-## `authHeader`
-
-Contrast User/Service Account Authorization Header. **Required** if username and service key not passed.
-
-## `userName`
-
-Contrast User/Service Account username. Required if authorization not passed.
-
-## `appId`
-
-ID of the application to verify against. **Required** if app_name not passed.
-
-## `appName`
-
-Name of the application to verify against. **Required** if app_id not passed.
-
-## `buildNumber`
-
-The build number or app version tag to filter vulnerabilities by.
-
-## `failThreshold`
-
-Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy).
-Defaults to `0`
-
-## `jobStartTime`
-
-Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch). Defaults to `0`
-
-## `severities`
-
-Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy).
-Defaults to `CRITICAL,HIGH`
+|Input Name|Description|Required|
+|------|------|------|
+|`apiKey`|Contrast User/Service Account API Key|Yes|
+|`orgId`|Contrast Organization ID|Yes|
+|`apiUrl`|URL of your Contrast Teamserver Instance (must begin with `https://` or `http://`)|No, defaults to `https://app.contrastsecurity.com`|
+|`serviceKey`|Contrast User or Service Account service key|Yes, unless `authHeader` is passed|
+|`authHeader`|Contrast User or Service Account authorization header|Yes, if `username` and `serviceKey` not passed|
+|`userName`|Contrast User or Service Account username|Yes, if `authHeader` not passed|
+|`appId`|ID of the application to verify against|Yes, if `appName` not passed|
+|`appName`|Name of the application to verify against|Yes, if `appId` not passed|
+|`buildNumber`|The build number or app version tag to filter vulnerabilities by|No|
+|`failThreshold`|Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)|No, defaults to `0`|
+|`jobStartTime`|Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch)|No, defaults to `0`|
+|`severities`|Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)|No, defaults to `CRITICAL,HIGH`|
 
 
 ## Example usage
