@@ -22,23 +22,19 @@ This action verifies an Assess application, applying a Job Outcome Policy or vul
 ## Example usage
 
 ```yaml
-uses: Contrast-Security-OSS/integration-verify-github-action@main
-with:
-  apiKey: ${{ secrets.CONTRAST_API_KEY }}
-  orgId: ${{ env.CONTRAST_ORG_ID }}
-  apiUrl: https://app.contrastsecurity.com
-  authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
-  appName: App_Name_Here
-  #appId: app_uuid_here
-```
-
-### Job Start Time
-
-The job start time value can be generated with the following step, running prior to your tests:
-```yaml
+name: Test and Verify
+on:
+  push:
+    branches:
+      - main
+    pull_request:
 jobs:
-  ...:
+  test_and_verify:
+    runs-on: ubuntu-latest
     steps:
+        # check out project
+      - uses: actions/checkout@v2
+        # record start time so we can verify only newly found vulnerabilities
       - name: Define job start time
         run: |
           import time
@@ -46,12 +42,29 @@ jobs:
           print(f"::set-output name=jobStartTime::{n}")
         shell: python
         id: set-job-start-time
+      # steps to build and run integration tests
+      # - name: Run tests
+      #
+      - name: Contrast Verify
+        uses: Contrast-Security-OSS/integration-verify-github-action@main
+        with:
+          apiKey: ${{ secrets.CONTRAST_API_KEY }}
+          orgId: <organization id>
+          apiUrl: https://app.contrastsecurity.com
+          authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
+          appName: App_Name_Here
+          #appId: or app_uuid_here if known
+          jobStartTime: "${{ steps.set-job-start-time.outputs.jobStartTime }}"
 ```
-And then used in the verify action with:
 
-`jobStartTime: "${{ steps.set-job-start-time.outputs.jobStartTime }}"`
+### Job Start Time and Build Number
 
+As shown above, the `jobStartTime` input value can be generated with a script step, running prior to your tests.
 This approach is useful when you want to consider only new vulnerabilities found by this action run, for example in a pull request.
+
+You may also pass a `buildNumber` input which will filter for vulnerabilities found in specific builds. The agent must be started with this same build number provided via the `CONTRAST__APPLICATION__VERSION` environment variable, or equivalent YAML/System Properties.
+
+If both `jobStartTime` and `buildNumber` are provided, the step will consider only vulnerabilities found since the specified start time, **and** with the provided `buildNumber`.
 
 ## Development Setup
 1. Run `python -m venv venv` to setup a virtual environment
