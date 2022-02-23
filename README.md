@@ -66,6 +66,10 @@ You may also pass a `buildNumber` input which will filter for vulnerabilities fo
 
 If both `jobStartTime` and `buildNumber` are provided, the step will consider only vulnerabilities found since the specified start time, **and** with the provided `buildNumber`.
 
+## Use outside of GitHub Actions
+
+This integration is available as a Docker image which allows it to be used in other environments outside of GitHub Actions, for example, in GitLab pipelines. For more details, see [Container Documentation](CONTAINER_DOCS.md).
+
 ## Development Setup
 1. Run `python -m venv venv` to setup a virtual environment
 1. Run `. venv/bin/activate` to activate the virtual environment
