@@ -46,7 +46,10 @@ class OutputHelper:
             self.notice = gh_action.notice
             self.warning = gh_action.warning
         else:
-            self.debug = self.__print("DEBUG: ")
+            if "DEBUG" in os.environ:
+                self.debug = self.__print("DEBUG: ")
+            else:
+                self.debug = lambda input: None
             self.error = self.__print("ERROR: ")
             self.info = self.__print("INFO: ")
             self.notice = self.__print("NOTICE: ")
