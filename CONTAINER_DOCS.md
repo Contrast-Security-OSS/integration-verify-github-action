@@ -49,3 +49,7 @@ contrast_verify:
   script:
     - /usr/bin/env python3 /verify.py
 ```
+
+## Logging
+
+Debug log messages are only emitted when an environment variable named `DEBUG` is set.

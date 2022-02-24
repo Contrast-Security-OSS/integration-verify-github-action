@@ -69,6 +69,10 @@ If both `jobStartTime` and `buildNumber` are provided, the step will consider on
 
 This integration is available as a Docker image which allows it to be used in other environments outside of GitHub Actions, for example, in GitLab pipelines. For more details, see [Container Documentation](CONTAINER_DOCS.md).
 
+## Logging
+
+Debug log messages are only made visible when [GitHub Actions debug logging is enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging).
+
 ## Development Setup
 1. Run `python -m venv venv` to setup a virtual environment
 1. Run `. venv/bin/activate` to activate the virtual environment
