@@ -1,6 +1,5 @@
-# ContrastAssessVerifyAction
-
-This action verifies an Assess application, applying a Job Outcome Policy or vulnerability threshold to fail the step if there are open vulnerabilities violating the policy/threshold.
+# Contrast Verify Action
+This action verifies an application that's onboarded to Contrast by determining whether the application violates a [Job Outcome Policy](https://docs.contrastsecurity.com/en/define-a-job-outcome-policy.html) or threshold of open vulnerabilities.
 
 ## Inputs
 |Input Name|Description|Required|
