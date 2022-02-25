@@ -15,7 +15,7 @@ This action verifies an application that's onboarded to Contrast by determining 
 |`buildNumber`|The build number or app version tag to filter vulnerabilities by|No|
 |`failThreshold`|Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)|No, defaults to `0`|
 |`jobStartTime`|Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch)|No, defaults to `0`|
-|`severities`|Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)|No, defaults to `CRITICAL,HIGH`|
+|`severities`|Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy). Values allowed are `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` and `NOTE`|No, defaults to `CRITICAL,HIGH`|
 
 
 ## Example usage
