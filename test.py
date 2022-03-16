@@ -1,16 +1,19 @@
 import contextlib
 import io
+import os
+import re
 import unittest
 
 import responses
 from responses import matchers
 
-from verify import ContrastVerifyAction
+from verify import ContrastVerifyAction, __version__
 
 
 class ActionTestCase(unittest.TestCase):
     def setUp(self):
-        self._header_matcher = matchers.header_matcher(
+        os.environ["GITHUB_ACTIONS"] = "false"
+        header_matcher = matchers.header_matcher(
             {
                 "Accept": "application/json",
                 "Content-Type": "application/json",
@@ -18,6 +21,27 @@ class ActionTestCase(unittest.TestCase):
                 "Authorization": "Base64Header",
             }
         )
+
+        def user_agent_matcher(request):
+            github_action_part = (
+                "" if os.environ["GITHUB_ACTIONS"] == "false" else "-github-action"
+            )  # user-agent should include github-action suffix when running in GitHub Actions environment, some tests will set this
+            pattern = f"integration-verify{github_action_part}/{__version__} python-requests/.* python/.*"
+            user_agent = request.headers.get("User-Agent")
+            match = re.match(
+                pattern,
+                user_agent,
+            )
+            return [
+                match,
+                ""
+                if match
+                else f"User agent does not match '{pattern}', got '{user_agent}'",
+            ]
+
+        self._matchers = [header_matcher, user_agent_matcher]
+        self._origin = {"origin": f"integration-verify/{__version__}"}
+        self._gh_origin = {"origin": f"integration-verify-github-action/{__version__}"}
 
         responses.add(
             responses.GET,
@@ -43,12 +67,13 @@ class ActionTestCase(unittest.TestCase):
 
     @responses.activate
     def test_validate_connection_valid(self):
+        os.environ["GITHUB_ACTIONS"] = "true"
         responses.add(
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/profile/",
             json={},
             status=200,
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         # it should succeed
@@ -60,7 +85,7 @@ class ActionTestCase(unittest.TestCase):
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/profile/",
             status=403,
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         out = io.StringIO()
@@ -83,7 +108,7 @@ class ActionTestCase(unittest.TestCase):
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/organizations/",
             json={},
             status=200,
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         # it should succeed
@@ -95,7 +120,7 @@ class ActionTestCase(unittest.TestCase):
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/organizations/",
             status=403,
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         out = io.StringIO()
@@ -117,7 +142,7 @@ class ActionTestCase(unittest.TestCase):
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/an_app_uuid",
             json={},
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         self._action = ContrastVerifyAction(
@@ -140,7 +165,7 @@ class ActionTestCase(unittest.TestCase):
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/an_app_uuid",
             status=403,
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         self._action = ContrastVerifyAction(
@@ -185,7 +210,7 @@ class ActionTestCase(unittest.TestCase):
             responses.GET,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/name?filterText=NonExistentApp",
             json={"applications": [{"name": "NonExactMatch", "app_id": "uuid"}]},
-            match=[self._header_matcher],
+            match=self._matchers,
         )
 
         self._action = ContrastVerifyAction(
@@ -221,7 +246,7 @@ class ActionTestCase(unittest.TestCase):
             status=200,
             json={"security_check": {"result": True}},
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -230,7 +255,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._origin,
                     }
                 ),
             ],
@@ -263,7 +288,7 @@ class ActionTestCase(unittest.TestCase):
                 }
             },
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -272,7 +297,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._origin,
                     }
                 ),
             ],
@@ -311,7 +336,7 @@ class ActionTestCase(unittest.TestCase):
                 }
             },
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -320,7 +345,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._origin,
                     }
                 ),
             ],
@@ -359,7 +384,7 @@ class ActionTestCase(unittest.TestCase):
             status=200,
             json={"security_check": {"result": True}},
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -368,7 +393,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": [],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._origin,
                     }
                 ),
             ],
@@ -405,7 +430,7 @@ class ActionTestCase(unittest.TestCase):
             status=200,
             json={"security_check": {"result": None}},
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -414,7 +439,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._origin,
                     }
                 ),
             ],
@@ -430,7 +455,7 @@ class ActionTestCase(unittest.TestCase):
                 ]
             },
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.query_param_matcher(
                     {
                         "severities": "HIGH,CRITICAL",
@@ -456,13 +481,14 @@ class ActionTestCase(unittest.TestCase):
     def test_verify_application_with_no_job_outcome_policy_above_threshold(
         self,
     ):
+        os.environ["GITHUB_ACTIONS"] = "true"
         responses.add(
             responses.POST,
             "https://apptwo.contrastsecurity.com/api/ng/anOrgId/securityChecks",
             status=200,
             json={"security_check": {"result": None}},
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.json_params_matcher(
                     {
                         "application_id": "verifier_app_uuid",
@@ -471,7 +497,7 @@ class ActionTestCase(unittest.TestCase):
                             "app_version_tags": ["123"],
                             "query_by": "APP_VERSION_TAG",
                         },
-                        "origin": "GitHub/Python",
+                        **self._gh_origin,
                     }
                 ),
             ],
@@ -487,7 +513,7 @@ class ActionTestCase(unittest.TestCase):
                 ]
             },
             match=[
-                self._header_matcher,
+                *self._matchers,
                 matchers.query_param_matcher(
                     {
                         "severities": "HIGH,CRITICAL",

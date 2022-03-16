@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 from base64 import b64encode
+from sys import version_info
 from urllib.parse import urlparse
 
 import requests
 from requests.exceptions import RequestException
+from requests.utils import default_user_agent as requests_default_user_agent
 
 from input_output_helpers import InputHelper, OutputHelper
+from version import __version__
 
 
 def validate_inputs():
@@ -97,9 +100,24 @@ class ContrastVerifyAction:
         self._job_start_time = config.get("JOB_START_TIME", 0)
         self._severities = config["SEVERITIES"]
         self._headers = None
+        self._user_agent = None
         self._app_id_verified = False
         self._job_start_time_provided = "JOB_START_TIME" in config
         self._output_helper = OutputHelper()
+
+    @property
+    def user_agent(self):
+        """Generate the User-Agent header value."""
+        if not self._user_agent:
+            github_suffix = (
+                "-github-action" if self._output_helper.is_github_actions() else ""
+            )
+            integration_version = f"integration-verify{github_suffix}/{__version__}"
+            python_version = ".".join(map(str, version_info[:3]))
+
+            self._user_agent = f"{integration_version} {requests_default_user_agent()} python/{python_version}"
+
+        return self._user_agent
 
     @property
     def teamserver_headers(self):
@@ -110,6 +128,7 @@ class ContrastVerifyAction:
                 "Content-Type": "application/json",
                 "Api-Key": self._contrast_api_key,
                 "Authorization": self._contrast_authorization,
+                "User-Agent": self.user_agent,
             }
         return self._headers
 
@@ -204,7 +223,7 @@ class ContrastVerifyAction:
                 "query_by": "APP_VERSION_TAG",
                 "app_version_tags": version_tags,
             },
-            "origin": "GitHub/Python",
+            "origin": self.user_agent.split()[0],
         }
         response = self.post_request(
             "securityChecks",

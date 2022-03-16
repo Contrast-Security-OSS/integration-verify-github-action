@@ -38,8 +38,12 @@ class InputHelper:
 class OutputHelper:
     """Helper class to format output for GitHub Actions or other CI/CD tools"""
 
+    @staticmethod
+    def is_github_actions():
+        return "true" == os.getenv("GITHUB_ACTIONS")
+
     def __init__(self) -> None:
-        if "true" == os.getenv("GITHUB_ACTIONS"):
+        if self.is_github_actions():
             self.debug = gh_action.debug
             self.error = gh_action.error
             self.info = gh_action.info
