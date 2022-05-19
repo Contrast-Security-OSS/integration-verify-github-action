@@ -107,7 +107,10 @@ def validate_inputs():
 if __name__ == "__main__":
     config = validate_inputs()
     action = ContrastVerifyAction(config)
+    action._output_helper.write_summary("# Contrast Verify")
     action.validate_connection()
     action.validate_organization()
+    action._output_helper.write_summary("- Connection Validated! :white_check_mark:")
     action.determine_application_id()
+    action._output_helper.write_summary("- Application found! :white_check_mark:")
     action.verify_application()
