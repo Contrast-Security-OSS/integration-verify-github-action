@@ -1,7 +1,8 @@
+import atexit
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from actions_toolkit import core as gh_action
 
@@ -30,6 +31,8 @@ class OutputHelper:
             self.notice = self.__print("NOTICE: ")
             self.warning = self.__print("WARNING: ")
 
+        self.write_summary = self.setup_github_summary()
+
     def __print(self, prefix):
         """
         Generate a print function that prefixes output with the specified prefix
@@ -45,6 +48,32 @@ class OutputHelper:
         """
         self.error(message)
         sys.exit(1)
+
+    def setup_github_summary(self) -> Callable[[str], None]:
+        def noop_writer(message):
+            pass
+
+        if not self.is_github_actions():
+            return noop_writer
+
+        path = os.getenv("GITHUB_STEP_SUMMARY")
+        if not path:
+            self.info(
+                "No path when configuring summary writer - no summary will be written"
+            )
+            return noop_writer
+        try:
+            self._summary_handle = open(path, "a")
+            atexit.register(self._summary_handle.close)
+            self.info("Successfully configured summary writer handle")
+        except OSError as e:
+            self.info(
+                f"IOError configuring summary writer for {path} - no summary will be written - {e}"
+            )
+            return noop_writer
+        else:
+            self.info("Successfully configured summary writer")
+            return lambda message: print(message, file=self._summary_handle)
 
 
 class InputHelper:
@@ -126,7 +155,6 @@ class InputHelper:
                 )
                 if not has_ca_cert:
                     has_ca_cert = is_ca_cert
-
             if not has_ca_cert:
                 output_helper.warning(
                     "None of the provided certificates are CA certificates. Only CA certificates can be used for custom trust."
