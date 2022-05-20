@@ -50,29 +50,36 @@ class OutputHelper:
         sys.exit(1)
 
     def setup_github_summary(self) -> Callable[[str], None]:
+        """
+        Setup the `write_summary` function so messages can be written out to the GitHub Action summary file.
+        If we are not running in GitHub Actions, are not given a path, or are unable to write to the specified file, the returned function will perform no operations.
+        :return: function that can write lines to the GitHub Action summary file, safe to use even when not running in GitHub Actions
+        """
+
         def noop_writer(message):
             pass
 
         if not self.is_github_actions():
+            self.debug("Not running in GitHub Actions, so no summary will be written")
             return noop_writer
 
         path = os.getenv("GITHUB_STEP_SUMMARY")
         if not path:
-            self.info(
+            self.warning(
                 "No path when configuring summary writer - no summary will be written"
             )
             return noop_writer
         try:
             self._summary_handle = open(path, "a")
             atexit.register(self._summary_handle.close)
-            self.info("Successfully configured summary writer handle")
+            self.debug("Successfully configured summary writer handle")
         except OSError as e:
-            self.info(
-                f"IOError configuring summary writer for {path} - no summary will be written - {e}"
+            self.warning(
+                f"OSError configuring summary writer for {path} - no summary will be written - {e}"
             )
             return noop_writer
         else:
-            self.info("Successfully configured summary writer")
+            self.debug("Successfully configured summary writer")
             return lambda message: print(message, file=self._summary_handle)
 
 
