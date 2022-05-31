@@ -7,7 +7,8 @@ import unittest
 import responses
 from responses import matchers
 
-from verify import ContrastVerifyAction, __version__
+from contrastverify import ContrastVerifyAction
+from version import __version__
 
 
 class ActionTestCase(unittest.TestCase):
