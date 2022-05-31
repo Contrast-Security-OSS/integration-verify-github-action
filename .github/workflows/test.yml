@@ -44,4 +44,4 @@
       - name: Run pre-commit
         run: pre-commit run --hook-stage manual --all-files --show-diff-on-failure
       - name: Run unit-tests
-        run:  python test.py
+        run:  python -m pytest
