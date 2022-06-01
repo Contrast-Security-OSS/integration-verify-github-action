@@ -7,6 +7,9 @@ from actions_toolkit import core as gh_action
 class InputHelper:
     """Helper class for getting inputs/environment variables"""
 
+    ALL_SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NOTE"]
+    """All vulnerability severities, in descending severity order."""
+
     @staticmethod
     def get_input(name):
         """
@@ -33,6 +36,20 @@ class InputHelper:
             return os.getenv(contrast_prefix_format)
 
         return None
+
+    @staticmethod
+    def get_included_severities(severities_csv: str) -> list[str]:
+        """
+        Process a CSV list of severities returning an array of valid severities in descending severity order.
+        Input will be split, trimmed and upper-cased.
+        """
+        input_severities = list(map(str.strip, severities_csv.upper().split(",")))
+
+        return [
+            severity
+            for severity in InputHelper.ALL_SEVERITIES
+            if severity in input_severities
+        ]
 
 
 class OutputHelper:
