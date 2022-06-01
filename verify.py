@@ -73,7 +73,7 @@ def validate_inputs():
     output_helper.debug(f'Base URL: {config["BASE_URL"]}')
 
     severities = InputHelper.get_input("SEVERITIES") or "CRITICAL,HIGH"
-    config["SEVERITIES"] = severities.upper()
+    config["SEVERITIES"] = InputHelper.get_included_severities(severities)
 
     fail_threshold = InputHelper.get_input("FAIL_THRESHOLD") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
