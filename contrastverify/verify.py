@@ -226,7 +226,7 @@ class ContrastVerifyAction:
         table = table_from_string_list(rows, Alignment.CENTER)
         markdown = generate_markdown(table)
 
-        self._output_helper.write_summary(markdown)
+        self._output_helper.write_summary("\n" + markdown)
 
     def verify_application(self):
         # First check for a configured job outcome policy defined in TeamServer
