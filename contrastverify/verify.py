@@ -1,6 +1,6 @@
 from pathlib import Path
 from sys import version_info
-from typing import Optional
+from typing import Pattern, Optional
 
 import requests
 from requests.exceptions import RequestException
@@ -17,6 +17,7 @@ class ContrastVerifyAction:
         app_id: Optional[str],
         app_name: Optional[str],
         base_url: str,
+        baseline_build_number_regex: Optional[Pattern[str]],
         build_number: str,
         contrast_api_key: str,
         contrast_authorization: str,
@@ -29,6 +30,7 @@ class ContrastVerifyAction:
         self._app_id = app_id
         self._app_name = app_name
         self._base_url = base_url
+        self._baseline_build_number_regex = baseline_build_number_regex
         self._build_number = build_number
         self._contrast_api_key = contrast_api_key
         self._contrast_authorization = contrast_authorization
@@ -175,24 +177,59 @@ class ContrastVerifyAction:
         )
         return response.json()
 
-    def fetch_vulnerability_count(self):
-        """Call the vulnerability quick filter endpoint to return number of vulnerabilities."""
-        response = self.get_request(
-            f"traces/{self._app_id}/quick",
-            {
-                "severities": ",".join(self._severities),
-                "appVersionTags": [self._build_number],
-                "startDate": self._job_start_time,
-                "timestampFilter": "FIRST",
-            },
-        )
-        return response.json()
+    def fetch_vulns(self):
+        body = {
+            "severities": self._severities,
+            "startDate": self._job_start_time,
+            "timestampFilter": "FIRST",
+            "quickFilter": "OPEN",
+        }
+        if self._build_number:
+            body["appVersionTags"] = [self._build_number]
+
+        traces = []
+
+        offset = 0
+        while True:
+            response = self.post_request(
+                f"traces/{self._app_id}/filter?limit=25&offset={offset}", body
+            )
+            data = response.json()
+            count = data["count"]
+            traces_page = data["traces"]
+            received_traces = len(traces_page)
+            offset += received_traces
+            traces.extend(traces_page)
+            if offset == count or received_traces == 0:
+                break
+
+        severities_breakdown = {severity: int(0) for severity in self._severities}
+
+        for trace in traces:
+            severity = trace["severity"].upper()
+            include_vuln = True
+            if self._baseline_build_number_regex:
+                for version in trace["app_version_tags"]:
+                    if self._baseline_build_number_regex.fullmatch(version):
+                        self._output_helper.debug(
+                            f"Not counting {trace['severity']}/{trace['uuid']}/{trace['rule_name']} as it has version '{version}' matching baseline pattern"
+                        )
+                        include_vuln = False
+                        break
+
+            if include_vuln:
+                severities_breakdown[severity] = severities_breakdown[severity] + 1
+
+        return severities_breakdown
 
     def verify_application(self):
         # First check for a configured job outcome policy defined in TeamServer
         job_outcome_policy_result = self.perform_security_check()
         self._output_helper.debug(job_outcome_policy_result)
         security_check_result = job_outcome_policy_result["security_check"]["result"]
+
+        severity_breakdown = self.fetch_vulns()
+
         if security_check_result is False:
             jop_policy = job_outcome_policy_result["security_check"][
                 "job_outcome_policy"
@@ -218,14 +255,11 @@ class ContrastVerifyAction:
             self._output_helper.info(
                 "No matching job outcome policy, checking vulnerabilities against threshold..."
             )
-            response = self.fetch_vulnerability_count()
-            self._output_helper.debug(response)
-            open_vulnerabilities_data = next(
-                filter(
-                    lambda filter: filter["filterType"] == "OPEN", response["filters"]
-                )
-            )
-            open_vulnerabilities = open_vulnerabilities_data["count"]
+
+            if not severity_breakdown:
+                severity_breakdown = self.fetch_vulns()
+            open_vulnerabilities = sum(severity_breakdown.values())
+
             if open_vulnerabilities > self._fail_threshold:
                 self._output_helper.set_failed(
                     f"The vulnerability count is {open_vulnerabilities} - Contrast verify gate fails as this is above threshold (threshold allows {self._fail_threshold})"
