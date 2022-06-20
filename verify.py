@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from base64 import b64encode
 from urllib.parse import urlparse
 
@@ -60,6 +61,28 @@ def validate_inputs():
             errors.append("jobStartTime (must be a number)")
 
     output_helper = OutputHelper()
+
+    build_number = InputHelper.get_input("BUILD_NUMBER")
+    baseline_pattern = InputHelper.get_input("BASELINE_BUILD_NUMBER_PATTERN")
+    config["BUILD_NUMBER"] = build_number
+
+    if build_number and baseline_pattern:
+        matcher = None
+        try:
+            matcher = re.compile(baseline_pattern)
+            config["BASELINE_BUILD_NUMBER_PATTERN"] = matcher
+        except re.error as e:
+            errors.append(f"baselineBuildNumberPattern (Invalid regex passed - '{e}')")
+        else:
+            if matcher.fullmatch(build_number):
+                errors.append(
+                    "buildNumber/baselineBuildNumberPattern (baselineBuildNumberPattern matches buildNumber which would exclude all vulnerabilities)"
+                )
+    elif baseline_pattern and not build_number:
+        output_helper.warning(
+            "buildNumber input was not provided so provided baselineBuildNumberPattern will be ignored"
+        )
+
     if len(errors) != 0:
         output_helper.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
@@ -77,8 +100,6 @@ def validate_inputs():
 
     fail_threshold = InputHelper.get_input("FAIL_THRESHOLD") or 0
     config["FAIL_THRESHOLD"] = int(fail_threshold)
-
-    config["BUILD_NUMBER"] = InputHelper.get_input("BUILD_NUMBER")
 
     return config
 

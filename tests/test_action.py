@@ -54,6 +54,47 @@ class ActionTestCase(unittest.TestCase):
             },
         )
 
+        responses.add(
+            responses.POST,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/filter",
+            json={
+                "traces": [
+                    {
+                        "uuid": "1234-abcd",
+                        "severity": "Critical",
+                        "rule_name": "sqli",
+                        "app_version_tags": [],
+                    },
+                    {
+                        "uuid": "5678-efgh",
+                        "severity": "High",
+                        "rule_name": "xss",
+                        "app_version_tags": [],
+                    },
+                    {
+                        "uuid": "9012-ijkl",
+                        "severity": "High",
+                        "rule_name": "xss",
+                        "app_version_tags": [],
+                    },
+                ],
+                "count": 3,
+            },
+            match=[
+                *self._matchers,
+                matchers.query_param_matcher({"limit": 25, "offset": 0}),
+                matchers.json_params_matcher(
+                    {
+                        "severities": ["CRITICAL", "HIGH"],
+                        "appVersionTags": ["123"],
+                        "timestampFilter": "FIRST",
+                        "startDate": 0,
+                        "quickFilter": "OPEN",
+                    }
+                ),
+            ],
+        )
+
         self._action = ContrastVerifyAction(
             {
                 "APP_NAME": "VerifierTest",
@@ -400,6 +441,46 @@ class ActionTestCase(unittest.TestCase):
             ],
         )
 
+        responses.replace(
+            responses.POST,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/filter",
+            json={
+                "traces": [
+                    {
+                        "uuid": "1234-abcd",
+                        "severity": "Critical",
+                        "rule_name": "sqli",
+                        "app_version_tags": [],
+                    },
+                    {
+                        "uuid": "5678-efgh",
+                        "severity": "High",
+                        "rule_name": "xss",
+                        "app_version_tags": [],
+                    },
+                    {
+                        "uuid": "9012-ijkl",
+                        "severity": "High",
+                        "rule_name": "xss",
+                        "app_version_tags": [],
+                    },
+                ],
+                "count": 3,
+            },
+            match=[
+                *self._matchers,
+                matchers.query_param_matcher({"limit": 25, "offset": 0}),
+                matchers.json_params_matcher(
+                    {
+                        "severities": ["CRITICAL", "HIGH"],
+                        "timestampFilter": "FIRST",
+                        "startDate": 0,
+                        "quickFilter": "OPEN",
+                    }
+                ),
+            ],
+        )
+
         self._action = ContrastVerifyAction(
             {
                 "APP_NAME": "VerifierTest",
@@ -446,23 +527,23 @@ class ActionTestCase(unittest.TestCase):
             ],
         )
 
-        responses.add(
-            responses.GET,
-            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/quick",
+        responses.replace(
+            responses.POST,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/filter",
             json={
-                "filters": [
-                    {"filterType": "ALL", "count": 12},
-                    {"filterType": "OPEN", "count": 0},
-                ]
+                "traces": [],
+                "count": 0,
             },
             match=[
                 *self._matchers,
-                matchers.query_param_matcher(
+                matchers.query_param_matcher({"limit": 25, "offset": 0}),
+                matchers.json_params_matcher(
                     {
-                        "severities": "HIGH,CRITICAL",
-                        "appVersionTags": "123",
+                        "severities": ["CRITICAL", "HIGH"],
+                        "appVersionTags": ["123"],
                         "timestampFilter": "FIRST",
-                        "startDate": "0",
+                        "startDate": 0,
+                        "quickFilter": "OPEN",
                     }
                 ),
             ],
@@ -504,28 +585,6 @@ class ActionTestCase(unittest.TestCase):
             ],
         )
 
-        responses.add(
-            responses.GET,
-            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/quick",
-            json={
-                "filters": [
-                    {"filterType": "ALL", "count": 12},
-                    {"filterType": "OPEN", "count": 7},
-                ]
-            },
-            match=[
-                *self._matchers,
-                matchers.query_param_matcher(
-                    {
-                        "severities": "HIGH,CRITICAL",
-                        "appVersionTags": "123",
-                        "timestampFilter": "FIRST",
-                        "startDate": "0",
-                    }
-                ),
-            ],
-        )
-
         out = io.StringIO()
         # it should quit
         with self.assertRaises(SystemExit) as cm:
@@ -539,7 +598,7 @@ class ActionTestCase(unittest.TestCase):
             out.getvalue(),
         )
         self.assertIn(
-            "The vulnerability count is 7 - Contrast verify gate fails as this is above threshold (threshold allows 0)",
+            "The vulnerability count is 3 - Contrast verify gate fails as this is above threshold (threshold allows 0)",
             out.getvalue(),
         )
 
