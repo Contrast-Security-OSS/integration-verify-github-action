@@ -103,7 +103,7 @@ class ActionTestCase(unittest.TestCase):
                 "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "123",
                 "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
+                "SEVERITIES": ["CRITICAL", "HIGH"],
             }
         )
 
@@ -489,7 +489,7 @@ class ActionTestCase(unittest.TestCase):
                 "AUTHORIZATION": "Base64Header",
                 "BUILD_NUMBER": "",
                 "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
+                "SEVERITIES": ["CRITICAL", "HIGH"],
             }
         )
 

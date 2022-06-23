@@ -1,6 +1,11 @@
 from sys import version_info
 
 import requests
+from markdown_table_generator import (
+    Alignment,
+    generate_markdown,
+    table_from_string_list,
+)
 from requests.exceptions import RequestException
 from requests.utils import default_user_agent as requests_default_user_agent
 
@@ -198,6 +203,31 @@ class ContrastVerifyAction:
 
         return severities_breakdown
 
+    def write_vulnerability_summary(self, severity_breakdown):
+        if not self._output_helper.is_github_actions():
+            return
+
+        severity_emoji = {
+            "CRITICAL": "bangbang",
+            "HIGH": "exclamation",
+            "MEDIUM": "warning",
+            "LOW": "information_source",
+            "NOTE": "notebook",
+        }
+
+        rows = [
+            [
+                f"{severity} :{severity_emoji[severity]}:"
+                for severity in self._severities
+            ],
+            [str(severity_breakdown.get(severity, 0)) for severity in self._severities],
+        ]
+
+        table = table_from_string_list(rows, Alignment.CENTER)
+        markdown = generate_markdown(table)
+
+        self._output_helper.write_summary(markdown)
+
     def verify_application(self):
         # First check for a configured job outcome policy defined in TeamServer
         job_outcome_policy_result = self.perform_security_check()
@@ -221,9 +251,12 @@ class ContrastVerifyAction:
                     f'Matching policy "{jop_name}" has job start time configured, but no job start time was provided, so 0 was passed to consider all open vulnerabilities.'
                 )
 
+            self.write_vulnerability_summary(severity_breakdown)
+
             self._output_helper.set_failed(
                 f'Contrast verify gate fails with status {jop_outcome} - policy "{jop_name}"'
             )
+
         elif security_check_result is True:
             self._output_helper.info("Step passes matching policy")
         else:
@@ -235,6 +268,8 @@ class ContrastVerifyAction:
             if not severity_breakdown:
                 severity_breakdown = self.fetch_vulns()
             open_vulnerabilities = sum(severity_breakdown.values())
+
+            self.write_vulnerability_summary(severity_breakdown)
 
             if open_vulnerabilities > self._fail_threshold:
                 self._output_helper.set_failed(
