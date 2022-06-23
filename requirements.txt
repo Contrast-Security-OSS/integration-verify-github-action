@@ -3,5 +3,6 @@ certifi==2023.7.22
 charset-normalizer==3.2.0
 cryptography==41.0.3
 idna==3.4
+markdown-table-generator==1.1.0
 requests==2.31.0
 urllib3==2.0.4
