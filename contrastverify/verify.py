@@ -1,4 +1,5 @@
 from sys import version_info
+from typing import Optional
 
 import requests
 from requests.exceptions import RequestException
@@ -10,21 +11,34 @@ from .helpers.input_output_helpers import OutputHelper
 
 
 class ContrastVerifyAction:
-    def __init__(self, config) -> None:
-        self._app_id = config.get("APP_ID")
-        self._app_name = config.get("APP_NAME")
-        self._base_url = config["BASE_URL"]
-        self._build_number = config["BUILD_NUMBER"]
-        self._contrast_api_key = config["API_KEY"]
-        self._contrast_authorization = config["AUTHORIZATION"]
-        self._fail_threshold = config["FAIL_THRESHOLD"]
-        self._job_start_time = config.get("JOB_START_TIME", 0)
-        self._severities = config["SEVERITIES"]
+    def __init__(
+        self,
+        app_id: Optional[str],
+        app_name: Optional[str],
+        base_url: str,
+        build_number: str,
+        contrast_api_key: str,
+        contrast_authorization: str,
+        fail_threshold: int,
+        job_start_time: Optional[int],
+        severities: list[str],
+        output_helper: Optional[OutputHelper] = None,
+    ) -> None:
+        self._app_id = app_id
+        self._app_name = app_name
+        self._base_url = base_url
+        self._build_number = build_number
+        self._contrast_api_key = contrast_api_key
+        self._contrast_authorization = contrast_authorization
+        self._fail_threshold = fail_threshold
+        self._job_start_time = job_start_time or 0
+        self._severities = severities
+        self._output_helper = output_helper or OutputHelper()
+
         self._headers = None
         self._user_agent = None
         self._app_id_verified = False
-        self._job_start_time_provided = "JOB_START_TIME" in config
-        self._output_helper = OutputHelper()
+        self._job_start_time_provided = job_start_time is not None
 
     @property
     def user_agent(self):
@@ -157,7 +171,7 @@ class ContrastVerifyAction:
         response = self.get_request(
             f"traces/{self._app_id}/quick",
             {
-                "severities": self._severities,
+                "severities": ",".join(self._severities),
                 "appVersionTags": [self._build_number],
                 "startDate": self._job_start_time,
                 "timestampFilter": "FIRST",

@@ -6,7 +6,7 @@ from contrastverify import ContrastVerifyAction
 from contrastverify.helpers.input_output_helpers import InputHelper, OutputHelper
 
 
-def validate_inputs():
+def validate_inputs(output_helper: OutputHelper):
     """Populate configuration object or set step to failed if required inputs are not set."""
     errors = []
     config = {}
@@ -59,7 +59,6 @@ def validate_inputs():
         except ValueError:
             errors.append("jobStartTime (must be a number)")
 
-    output_helper = OutputHelper()
     if len(errors) != 0:
         output_helper.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
@@ -84,8 +83,21 @@ def validate_inputs():
 
 
 if __name__ == "__main__":
-    config = validate_inputs()
-    action = ContrastVerifyAction(config)
+    output_helper = OutputHelper()
+    config = validate_inputs(output_helper)
+
+    action = ContrastVerifyAction(
+        config.get("APP_ID"),
+        config.get("APP_NAME"),
+        config["BASE_URL"],
+        config["BUILD_NUMBER"],
+        config["API_KEY"],
+        config["AUTHORIZATION"],
+        config["FAIL_THRESHOLD"],
+        config.get("JOB_START_TIME"),
+        config["SEVERITIES"],
+        output_helper,
+    )
     action.validate_connection()
     action.validate_organization()
     action.determine_application_id()

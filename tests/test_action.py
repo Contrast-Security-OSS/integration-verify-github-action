@@ -55,15 +55,15 @@ class ActionTestCase(unittest.TestCase):
         )
 
         self._action = ContrastVerifyAction(
-            {
-                "APP_NAME": "VerifierTest",
-                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "API_KEY": "An_Api_Key",
-                "AUTHORIZATION": "Base64Header",
-                "BUILD_NUMBER": "123",
-                "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
-            }
+            app_id=None,
+            app_name="VerifierTest",
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="123",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
         )
 
     @responses.activate
@@ -147,15 +147,15 @@ class ActionTestCase(unittest.TestCase):
         )
 
         self._action = ContrastVerifyAction(
-            {
-                "APP_ID": "an_app_uuid",
-                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "API_KEY": "An_Api_Key",
-                "AUTHORIZATION": "Base64Header",
-                "BUILD_NUMBER": "123",
-                "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
-            }
+            app_id="an_app_uuid",
+            app_name=None,
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="123",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
         )
 
         self._action.determine_application_id()
@@ -170,15 +170,15 @@ class ActionTestCase(unittest.TestCase):
         )
 
         self._action = ContrastVerifyAction(
-            {
-                "APP_ID": "an_app_uuid",
-                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "API_KEY": "An_Api_Key",
-                "AUTHORIZATION": "Base64Header",
-                "BUILD_NUMBER": "123",
-                "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
-            }
+            app_id="an_app_uuid",
+            app_name=None,
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="123",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
         )
 
         out = io.StringIO()
@@ -215,15 +215,15 @@ class ActionTestCase(unittest.TestCase):
         )
 
         self._action = ContrastVerifyAction(
-            {
-                "APP_NAME": "NonExistentApp",
-                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "API_KEY": "An_Api_Key",
-                "AUTHORIZATION": "Base64Header",
-                "BUILD_NUMBER": "123",
-                "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
-            }
+            app_id=None,
+            app_name="NonExistentApp",
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="123",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
         )
 
         out = io.StringIO()
@@ -401,15 +401,15 @@ class ActionTestCase(unittest.TestCase):
         )
 
         self._action = ContrastVerifyAction(
-            {
-                "APP_NAME": "VerifierTest",
-                "BASE_URL": "https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
-                "API_KEY": "An_Api_Key",
-                "AUTHORIZATION": "Base64Header",
-                "BUILD_NUMBER": "",
-                "FAIL_THRESHOLD": 0,
-                "SEVERITIES": "HIGH,CRITICAL",
-            }
+            app_id=None,
+            app_name="VerifierTest",
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
         )
 
         out = io.StringIO()
