@@ -1,3 +1,4 @@
+from pathlib import Path
 from sys import version_info
 from typing import Optional
 
@@ -23,6 +24,7 @@ class ContrastVerifyAction:
         job_start_time: Optional[int],
         severities: list[str],
         output_helper: Optional[OutputHelper] = None,
+        cert_file: Optional[Path] = None,
     ) -> None:
         self._app_id = app_id
         self._app_name = app_name
@@ -34,6 +36,7 @@ class ContrastVerifyAction:
         self._job_start_time = job_start_time or 0
         self._severities = severities
         self._output_helper = output_helper or OutputHelper()
+        self._cert_file = str(cert_file) if cert_file else True
 
         self._headers = None
         self._user_agent = None
@@ -80,7 +83,10 @@ class ContrastVerifyAction:
         """Send a GET request to TeamServer."""
         self._output_helper.debug(f"GET {path} {parameters}")
         response = requests.get(
-            self._base_url + path, params=parameters, headers=self.teamserver_headers
+            self._base_url + path,
+            params=parameters,
+            headers=self.teamserver_headers,
+            verify=self._cert_file,
         )
         response.raise_for_status()
         return response
@@ -89,7 +95,10 @@ class ContrastVerifyAction:
         """Send a POST request to TeamServer."""
         self._output_helper.debug(f"POST {path}")
         response = requests.post(
-            self._base_url + path, json=body, headers=self.teamserver_headers
+            self._base_url + path,
+            json=body,
+            headers=self.teamserver_headers,
+            verify=self._cert_file,
         )
         response.raise_for_status()
         return response

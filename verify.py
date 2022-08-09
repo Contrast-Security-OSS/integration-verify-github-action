@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from base64 import b64encode
+from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 
 from contrastverify import ContrastVerifyAction
@@ -82,9 +84,30 @@ def validate_inputs(output_helper: OutputHelper):
     return config
 
 
+def load_certs(output_helper: OutputHelper) -> Optional[Path]:
+    certs_to_add = InputHelper.get_input("CA_FILE")
+    if not certs_to_add:
+        return None
+
+    import pathlib
+
+    from certifi import where as default_certs_path
+
+    output_file = (
+        pathlib.Path(default_certs_path()).parent / "contrast_verify_ca_file.pem"
+    )
+    with open(output_file, "w") as certs:
+        certs.write(certs_to_add)
+
+    output_helper.info(f"Wrote ca_cert(s) to {output_file}")
+
+    return output_file
+
+
 if __name__ == "__main__":
     output_helper = OutputHelper()
     config = validate_inputs(output_helper)
+    cert_file = load_certs(output_helper)
 
     action = ContrastVerifyAction(
         config.get("APP_ID"),
@@ -97,6 +120,7 @@ if __name__ == "__main__":
         config.get("JOB_START_TIME"),
         config["SEVERITIES"],
         output_helper,
+        cert_file,
     )
     action.validate_connection()
     action.validate_organization()

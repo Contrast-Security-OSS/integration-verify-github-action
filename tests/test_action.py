@@ -3,6 +3,7 @@ import io
 import os
 import re
 import unittest
+from pathlib import Path
 
 import responses
 from responses import matchers
@@ -23,6 +24,8 @@ class ActionTestCase(unittest.TestCase):
             }
         )
 
+        kwargs_matcher = matchers.request_kwargs_matcher({"verify": True})
+
         def user_agent_matcher(request):
             github_action_part = (
                 "" if os.environ["GITHUB_ACTIONS"] == "false" else "-github-action"
@@ -40,7 +43,7 @@ class ActionTestCase(unittest.TestCase):
                 else f"User agent does not match '{pattern}', got '{user_agent}'",
             ]
 
-        self._matchers = [header_matcher, user_agent_matcher]
+        self._matchers = [header_matcher, kwargs_matcher, user_agent_matcher]
         self._origin = {"origin": f"integration-verify/{__version__}"}
         self._gh_origin = {"origin": f"integration-verify-github-action/{__version__}"}
 
@@ -499,6 +502,97 @@ class ActionTestCase(unittest.TestCase):
                             "query_by": "APP_VERSION_TAG",
                         },
                         **self._gh_origin,
+                    }
+                ),
+            ],
+        )
+
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/traces/verifier_app_uuid/quick",
+            json={
+                "filters": [
+                    {"filterType": "ALL", "count": 12},
+                    {"filterType": "OPEN", "count": 7},
+                ]
+            },
+            match=[
+                *self._matchers,
+                matchers.query_param_matcher(
+                    {
+                        "severities": "HIGH,CRITICAL",
+                        "appVersionTags": "123",
+                        "timestampFilter": "FIRST",
+                        "startDate": "0",
+                    }
+                ),
+            ],
+        )
+
+        out = io.StringIO()
+        # it should quit
+        with self.assertRaises(SystemExit) as cm:
+            with contextlib.redirect_stdout(out):
+                self._action.verify_application()
+        # it should exit non-zero
+        self.assertEqual(cm.exception.code, 1)
+        # it should log useful messages
+        self.assertIn(
+            "No matching job outcome policy, checking vulnerabilities against threshold...",
+            out.getvalue(),
+        )
+        self.assertIn(
+            "The vulnerability count is 7 - Contrast verify gate fails as this is above threshold (threshold allows 0)",
+            out.getvalue(),
+        )
+
+    @responses.activate
+    def test_custom_ca_certificate_verification(
+        self,
+    ):
+        cert_path = "/path/to/user_provided_ca_cert.pem"
+        self._action = ContrastVerifyAction(
+            app_id=None,
+            app_name="CustomCertTest",
+            base_url="https://apptwo.contrastsecurity.com/api/ng/anOrgId/",
+            build_number="123",
+            contrast_api_key="An_Api_Key",
+            contrast_authorization="Base64Header",
+            fail_threshold=0,
+            job_start_time=None,
+            severities=["HIGH", "CRITICAL"],
+            cert_file=Path(cert_path),
+        )
+
+        self._matchers[1] = matchers.request_kwargs_matcher({"verify": cert_path})
+
+        responses.add(
+            responses.GET,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/applications/name?filterText=CustomCertTest",
+            json={
+                "applications": [
+                    {"name": "CustomCertTest", "app_id": "verifier_app_uuid"}
+                ]
+            },
+            match=self._matchers,
+        )
+
+        responses.add(
+            responses.POST,
+            "https://apptwo.contrastsecurity.com/api/ng/anOrgId/securityChecks",
+            status=200,
+            json={"security_check": {"result": None}},
+            match=[
+                *self._matchers,
+                matchers.json_params_matcher(
+                    {
+                        "application_id": "verifier_app_uuid",
+                        "job_start_time": 0,
+                        "security_check_filter": {
+                            "app_version_tags": ["123"],
+                            "query_by": "APP_VERSION_TAG",
+                        },
+                        **self._origin,
                     }
                 ),
             ],
