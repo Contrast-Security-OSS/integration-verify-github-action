@@ -73,6 +73,12 @@ This integration is available as a Docker image which allows it to be used in ot
 
 Debug log messages are only made visible when [GitHub Actions debug logging is enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging).
 
+## Proxy / Custom TLS Certificates
+
+A HTTP or HTTPS proxy may be used, by setting the environment variables `HTTP_PROXY` and `HTTPS_PROXY` respectively. The value should be the full proxy URL, including authorization details if required.
+
+If your environment requires custom certificate(s) to be trusted, these may be provided via the input `caFile` in pem format.
+
 ## Development Setup
 1. Run `python -m venv venv` to setup a virtual environment
 1. Run `. venv/bin/activate` to activate the virtual environment
