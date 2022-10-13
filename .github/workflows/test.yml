@@ -33,7 +33,7 @@
         run: pip install -r requirements-dev.txt
       - name: Restore pre-commit environment from cache
         id: cache-precommit
-        uses: actions/cache@v3.0.2
+        uses: actions/cache@v3.0.11
         with:
           path: ${{ env.PRE_COMMIT_CACHE }}
           key: >-
