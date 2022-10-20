@@ -1,6 +1,6 @@
 actions-toolkit==0.1.13
 certifi==2022.5.18.1
-charset-normalizer==2.0.12
+charset-normalizer==3.0.0
 idna==3.3
 requests==2.28.0
 urllib3==1.26.9
