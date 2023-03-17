@@ -54,7 +54,7 @@ contrast_verify:
 
 Debug log messages are only emitted when an environment variable named `DEBUG` is set.
 
-## Proxy / Custom TLS Certificates
+## Proxy / Custom TLS Certificates
 
 A HTTP or HTTPS proxy may be used, by setting the environment variables `HTTP_PROXY` and `HTTPS_PROXY` respectively. The value should be the full proxy URL, including authorization details if required.
 
