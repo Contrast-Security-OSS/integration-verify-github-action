@@ -73,7 +73,7 @@ This integration is available as a Docker image which allows it to be used in ot
 
 Debug log messages are only made visible when [GitHub Actions debug logging is enabled](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging).
 
-## Proxy / Custom TLS Certificates
+## Proxy / Custom TLS Certificates
 
 A HTTP or HTTPS proxy may be used, by setting the environment variables `HTTP_PROXY` and `HTTPS_PROXY` respectively. The value should be the full proxy URL, including authorization details if required.
 
