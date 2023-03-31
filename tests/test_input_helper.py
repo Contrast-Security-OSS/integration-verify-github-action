@@ -5,7 +5,6 @@ from verify import InputHelper
 
 class InputHelperTestCase(unittest.TestCase):
     def test_severities_validation(self):
-
         self.assertEqual(InputHelper.get_included_severities(""), [])
         self.assertEqual(
             InputHelper.get_included_severities("CRITICAL,HIGH"), ["CRITICAL", "HIGH"]
