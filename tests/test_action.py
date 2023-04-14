@@ -14,6 +14,10 @@ from version import __version__
 
 class ActionTestCase(unittest.TestCase):
     def setUp(self):
+        for key in ["CURL_CA_BUNDLE", "REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"]:
+            if key in os.environ:
+                del os.environ[key]
+
         os.environ["GITHUB_ACTIONS"] = "false"
         header_matcher = matchers.header_matcher(
             {
