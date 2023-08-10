@@ -3,9 +3,9 @@ from sys import version_info
 from typing import Optional
 
 import requests
+import urllib3
 from requests.exceptions import RequestException
 from requests.utils import default_user_agent as requests_default_user_agent
-import urllib3
 
 from version import __version__
 
