@@ -5,6 +5,7 @@ from typing import Optional
 import requests
 from requests.exceptions import RequestException
 from requests.utils import default_user_agent as requests_default_user_agent
+import urllib3
 
 from version import __version__
 
@@ -82,6 +83,10 @@ class ContrastVerifyAction:
     def get_request(self, path, parameters={}):
         """Send a GET request to TeamServer."""
         self._output_helper.debug(f"GET {path} {parameters}")
+
+        if self._cert_file == False:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         response = requests.get(
             self._base_url + path,
             params=parameters,

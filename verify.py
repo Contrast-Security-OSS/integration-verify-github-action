@@ -88,6 +88,9 @@ def load_certs(output_helper: OutputHelper) -> Optional[Path]:
     certs_to_add = InputHelper.get_input("CA_FILE")
     if not certs_to_add:
         return None
+    # handle ignore Certs
+    if certs_to_add.upper() == "FALSE":
+        return False
 
     import pathlib
 
