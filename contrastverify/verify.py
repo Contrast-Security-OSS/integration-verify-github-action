@@ -84,7 +84,7 @@ class ContrastVerifyAction:
         """Send a GET request to TeamServer."""
         self._output_helper.debug(f"GET {path} {parameters}")
 
-        if self._cert_file == False:
+        if self._cert_file is False:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         response = requests.get(
