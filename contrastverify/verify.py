@@ -86,7 +86,7 @@ class ContrastVerifyAction:
         self._output_helper.debug(f"GET {path} {parameters}")
 
         if self._cert_file is False:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning) #type: ignore
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
 
         response = requests.get(
             self._base_url + path,
