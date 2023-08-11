@@ -110,7 +110,6 @@ def load_certs(output_helper: OutputHelper) -> Union[Path, bool, None]:
 if __name__ == "__main__":
     output_helper = OutputHelper()
     config = validate_inputs(output_helper)
-    # type: ignore  
     cert_file = load_certs(output_helper)
 
     action = ContrastVerifyAction(
