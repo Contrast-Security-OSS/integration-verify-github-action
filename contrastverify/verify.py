@@ -1,7 +1,6 @@
 from pathlib import Path
 from sys import version_info
-from typing import Optional
-from typing import Union
+from typing import Optional, Union
 
 import requests
 import urllib3
