@@ -1,6 +1,7 @@
 from pathlib import Path
 from sys import version_info
 from typing import Optional
+from typing import Union
 
 import requests
 import urllib3
@@ -25,7 +26,7 @@ class ContrastVerifyAction:
         job_start_time: Optional[int],
         severities: list[str],
         output_helper: Optional[OutputHelper] = None,
-        cert_file: Optional[Path] = None,
+        cert_file: Union[Path,bool,None] = None,
     ) -> None:
         self._app_id = app_id
         self._app_name = app_name
@@ -85,7 +86,7 @@ class ContrastVerifyAction:
         self._output_helper.debug(f"GET {path} {parameters}")
 
         if self._cert_file is False:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning) #type: ignore
 
         response = requests.get(
             self._base_url + path,
