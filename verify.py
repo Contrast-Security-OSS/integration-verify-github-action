@@ -85,13 +85,12 @@ def validate_inputs(output_helper: OutputHelper):
     return config
 
 
-def load_certs(output_helper: OutputHelper) -> Union[Path,bool,None]:
+def load_certs(output_helper: OutputHelper) -> Union[Path, bool, None]:
     certs_to_add = InputHelper.get_input("CA_FILE")
     if not certs_to_add:
         return None
     # handle ignore Certs
     if certs_to_add.upper() == "FALSE":
-        # type: ignore  
         return False
 
     import pathlib
