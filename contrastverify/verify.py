@@ -37,8 +37,7 @@ class ContrastVerifyAction:
         self._job_start_time = job_start_time or 0
         self._severities = severities
         self._output_helper = output_helper or OutputHelper()
-        self._cert_file = str(cert_file) if cert_file else True
-
+        self._cert_file = str(cert_file) if cert_file is not None else True
         self._headers = None
         self._user_agent = None
         self._app_id_verified = False
@@ -83,9 +82,10 @@ class ContrastVerifyAction:
     def get_request(self, path, parameters={}):
         """Send a GET request to TeamServer."""
         self._output_helper.debug(f"GET {path} {parameters}")
-
-        if self._cert_file is False:
+        
+        if self._cert_file == "False":
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
+            self._cert_file = False
 
         response = requests.get(
             self._base_url + path,
@@ -99,6 +99,10 @@ class ContrastVerifyAction:
     def post_request(self, path, body):
         """Send a POST request to TeamServer."""
         self._output_helper.debug(f"POST {path}")
+        if self._cert_file == "False":
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
+            self._cert_file = False
+
         response = requests.post(
             self._base_url + path,
             json=body,
