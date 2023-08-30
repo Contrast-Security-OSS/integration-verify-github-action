@@ -1,7 +1,50 @@
 import os
 import sys
+from pathlib import Path
+from typing import Optional
 
 from actions_toolkit import core as gh_action
+
+
+class OutputHelper:
+    """Helper class to format output for GitHub Actions or other CI/CD tools"""
+
+    @staticmethod
+    def is_github_actions():
+        return "true" == os.getenv("GITHUB_ACTIONS")
+
+    def __init__(self) -> None:
+        if self.is_github_actions():
+            self.debug = gh_action.debug
+            self.error = gh_action.error
+            self.info = gh_action.info
+            self.notice = gh_action.notice
+            self.warning = gh_action.warning
+        else:
+            if "DEBUG" in os.environ:
+                self.debug = self.__print("DEBUG: ")
+            else:
+                self.debug = lambda input: None
+            self.error = self.__print("ERROR: ")
+            self.info = self.__print("INFO: ")
+            self.notice = self.__print("NOTICE: ")
+            self.warning = self.__print("WARNING: ")
+
+    def __print(self, prefix):
+        """
+        Generate a print function that prefixes output with the specified prefix
+        :param prefix: prefix to print before supplied message
+        :return: function that will print prefix+str(input)
+        """
+        return lambda input: print(prefix + str(input))
+
+    def set_failed(self, message):
+        """
+        Exit due to a failure. Exit code will be 1.
+        :param message: error message to print
+        """
+        self.error(message)
+        sys.exit(1)
 
 
 class InputHelper:
@@ -51,43 +94,52 @@ class InputHelper:
             if severity in input_severities
         ]
 
-
-class OutputHelper:
-    """Helper class to format output for GitHub Actions or other CI/CD tools"""
-
     @staticmethod
-    def is_github_actions():
-        return "true" == os.getenv("GITHUB_ACTIONS")
+    def load_certs(output_helper: OutputHelper) -> Optional[Path]:
+        certs_to_add = InputHelper.get_input("CA_FILE")
+        if not certs_to_add:
+            return None
 
-    def __init__(self) -> None:
-        if self.is_github_actions():
-            self.debug = gh_action.debug
-            self.error = gh_action.error
-            self.info = gh_action.info
-            self.notice = gh_action.notice
-            self.warning = gh_action.warning
-        else:
-            if "DEBUG" in os.environ:
-                self.debug = self.__print("DEBUG: ")
-            else:
-                self.debug = lambda input: None
-            self.error = self.__print("ERROR: ")
-            self.info = self.__print("INFO: ")
-            self.notice = self.__print("NOTICE: ")
-            self.warning = self.__print("WARNING: ")
+        from certifi import where as default_certs_path
+        from cryptography.x509 import (
+            BasicConstraints,
+            ExtensionNotFound,
+            load_pem_x509_certificates,
+        )
 
-    def __print(self, prefix):
-        """
-        Generate a print function that prefixes output with the specified prefix
-        :param prefix: prefix to print before supplied message
-        :return: function that will print prefix+str(input)
-        """
-        return lambda input: print(prefix + str(input))
+        try:
+            certificates = load_pem_x509_certificates(bytes(certs_to_add, "UTF-8"))
+            has_ca_cert = False
+            for index, certificate in enumerate(certificates):
+                try:
+                    basic_constraints = certificate.extensions.get_extension_for_class(
+                        BasicConstraints
+                    )
+                    is_ca_cert = basic_constraints.value.ca
+                except ExtensionNotFound:
+                    output_helper.debug(
+                        f"Certificate[{index}] has no basic constraints, assuming it is not a CA certificate"
+                    )
+                    is_ca_cert = False
+                output_helper.debug(
+                    f"Certificate[{index}]: {certificate.subject} is_ca_cert: {is_ca_cert}"
+                )
+                if not has_ca_cert:
+                    has_ca_cert = is_ca_cert
 
-    def set_failed(self, message):
-        """
-        Exit due to a failure. Exit code will be 1.
-        :param message: error message to print
-        """
-        self.error(message)
-        sys.exit(1)
+            if not has_ca_cert:
+                output_helper.warning(
+                    "None of the provided certificates are CA certificates. Only CA certificates can be used for custom trust."
+                )
+        except ValueError as e:
+            output_helper.error(
+                f"Unable to load certificate(s) from CA_FILE input - {e}"
+            )
+
+        output_file = Path(default_certs_path()).parent / "contrast_verify_ca_file.pem"
+        with open(output_file, "w") as certs:
+            certs.write(certs_to_add)
+
+        output_helper.info(f"Wrote ca_cert(s) to {output_file}")
+
+        return output_file
