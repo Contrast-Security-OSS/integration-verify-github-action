@@ -1,6 +1,6 @@
 FROM alpine:3.18.3
 
-RUN apk add --no-cache python3 py3-pip
+RUN apk add --no-cache python3 py3-pip py3-cryptography
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
