@@ -1,7 +1,7 @@
 backports.entry-points-selectable==1.2.0
 bump2version==1.0.1
 cfgv==3.3.1
-charset-normalizer==3.1.0
+charset-normalizer==3.2.0
 distlib==0.3.6
 filelock==3.12.2
 identify==2.5.27
