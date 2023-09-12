@@ -36,9 +36,9 @@ jobs:
         # record start time so we can verify only newly found vulnerabilities
       - name: Define job start time
         run: |
-          import time
+          import os, time
           n = int(round(time.time() * 1000))
-          print(f"::set-output name=jobStartTime::{n}")
+          print(f"jobStartTime={n}", file=open(os.environ["GITHUB_OUTPUT"], "a"))
         shell: python
         id: set-job-start-time
       # steps to build and run integration tests
