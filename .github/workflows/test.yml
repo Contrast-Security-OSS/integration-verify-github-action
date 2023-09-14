@@ -1,33 +1,33 @@
 # This is a basic workflow to help you get started with Actions
 
- name: Run Tests
+name: Run Tests
 
- # Controls when the workflow will run
- on:
-   # Triggers the workflow on push or pull request events but only for the main branch
-   push:
-     branches: [ main ]
-   pull_request:
-     branches: [ main ]
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-   # Allows you to run this workflow manually from the Actions tab
-   workflow_dispatch:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
- env:
-   CACHE_VERSION: 1
-   DEFAULT_PYTHON: 3.9
-   PRE_COMMIT_CACHE: ~/.cache/pre-commit
+env:
+  CACHE_VERSION: 1
+  DEFAULT_PYTHON: 3.9
+  PRE_COMMIT_CACHE: ~/.cache/pre-commit
 
- # A workflow run is made up of one or more jobs that can run sequentially or in parallel
- jobs:
-   unit-tests:
-     runs-on: ubuntu-latest
-     steps:
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
-          cache: 'pip'
+          cache: "pip"
           cache-dependency-path: requirements-dev.txt
       - name: Install dev dependencies
         run: pip install -r requirements-dev.txt
@@ -44,4 +44,8 @@
       - name: Run pre-commit
         run: pre-commit run --hook-stage manual --all-files --show-diff-on-failure
       - name: Run unit-tests
-        run:  python -m pytest
+        run: python -m pytest --cov --cov-config=tox.ini --cov-report=term --cov-report=html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage
+          path: htmlcov
