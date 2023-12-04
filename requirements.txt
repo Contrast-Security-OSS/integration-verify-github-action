@@ -1,6 +1,6 @@
 actions-toolkit==0.1.15
 certifi==2023.7.22
-charset-normalizer==3.2.0
+charset-normalizer==3.3.2
 cryptography==41.0.7
 idna==3.4
 requests==2.31.0
