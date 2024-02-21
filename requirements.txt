@@ -1,5 +1,5 @@
 actions-toolkit==0.1.15
-certifi==2023.11.17
+certifi==2024.2.2
 charset-normalizer==3.3.2
 cryptography==42.0.2
 idna==3.6
