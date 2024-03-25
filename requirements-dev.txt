@@ -7,7 +7,7 @@ filelock==3.13.1
 identify==2.5.35
 nodeenv==1.8.0
 platformdirs==2.5.4
-pre-commit==3.6.2
+pre-commit==3.7.0
 pytest==8.0.2
 pytest-cov==4.1.0
 PyYAML==6.0.1
