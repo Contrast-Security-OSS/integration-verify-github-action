@@ -1,7 +1,7 @@
 actions-toolkit==0.1.15
 certifi==2024.7.4
 charset-normalizer==3.3.2
-cryptography==42.0.8
+cryptography==43.0.0
 idna==3.7
 requests==2.32.3
 urllib3==2.2.2
