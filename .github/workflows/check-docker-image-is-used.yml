@@ -8,6 +8,6 @@
    check-docker-image-is-used:
      runs-on: ubuntu-latest
      steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check action will use image
         run: yq -e '.runs.image=="docker://ghcr.io/contrast-security-oss/integration-verify:main"' action.yaml || { echo "::error file=action.yaml,line=$(yq '.runs.image|line' action.yaml),column=$(yq '.runs.image|column' action.yaml),endColumn=$(yq '(.runs.image|column)+(.runs.image|length)' action.yaml)::Action is not configured to use built Docker image" && exit 1; }
