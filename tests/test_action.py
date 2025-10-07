@@ -42,9 +42,11 @@ class ActionTestCase(unittest.TestCase):
             )
             return [
                 match,
-                ""
-                if match
-                else f"User agent does not match '{pattern}', got '{user_agent}'",
+                (
+                    ""
+                    if match
+                    else f"User agent does not match '{pattern}', got '{user_agent}'"
+                ),
             ]
 
         self._matchers = [header_matcher, kwargs_matcher, user_agent_matcher]

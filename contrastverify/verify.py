@@ -1,6 +1,5 @@
 from pathlib import Path
 from sys import version_info
-from typing import Optional
 
 import requests
 from requests.exceptions import RequestException
@@ -14,17 +13,17 @@ from .helpers.input_output_helpers import OutputHelper
 class ContrastVerifyAction:
     def __init__(
         self,
-        app_id: Optional[str],
-        app_name: Optional[str],
+        app_id: str | None,
+        app_name: str | None,
         base_url: str,
         build_number: str,
         contrast_api_key: str,
         contrast_authorization: str,
         fail_threshold: int,
-        job_start_time: Optional[int],
+        job_start_time: int | None,
         severities: list[str],
-        output_helper: Optional[OutputHelper] = None,
-        cert_file: Optional[Path] = None,
+        output_helper: OutputHelper | None = None,
+        cert_file: Path | None = None,
     ) -> None:
         self._app_id = app_id
         self._app_name = app_name
