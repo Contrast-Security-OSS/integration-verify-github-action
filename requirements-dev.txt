@@ -10,7 +10,7 @@ platformdirs==4.4.0
 pre-commit==4.3.0
 pytest==8.4.2
 pytest-cov==7.0.0
-PyYAML==6.0.1
+PyYAML==6.0.3
 responses==0.25.8
 six==1.17.0
 toml==0.10.2
