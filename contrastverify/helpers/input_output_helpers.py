@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 from actions_toolkit import core as gh_action
 
@@ -95,7 +94,7 @@ class InputHelper:
         ]
 
     @staticmethod
-    def load_certs(output_helper: OutputHelper) -> Optional[Path]:
+    def load_certs(output_helper: OutputHelper) -> Path | None:
         certs_to_add = InputHelper.get_input("CA_FILE")
         if not certs_to_add:
             return None
