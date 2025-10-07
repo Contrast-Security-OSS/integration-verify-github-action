@@ -1,8 +1,11 @@
-FROM alpine:3.18.5
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
 
-RUN apk add --no-cache python3 py3-pip py3-cryptography
+ENV VIRT_ENV=/opt/venv
+RUN uv venv $VIRT_ENV --python 3.13
+ENV PATH="$VIRT_ENV/bin:$PATH"
+
 ADD requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN uv pip install -r requirements.txt
 
 ADD contrastverify contrastverify
 ADD version.py version.py
