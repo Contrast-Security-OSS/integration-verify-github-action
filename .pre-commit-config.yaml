@@ -18,7 +18,7 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: .bumpversion.cfg
+        exclude: .bumpversion.cfg|security.md
       - id: end-of-file-fixer
       - id: check-json
       - id: check-yaml
