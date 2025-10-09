@@ -38,6 +38,42 @@ class InputHelperTestCase(unittest.TestCase):
             ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NOTE"],
         )
 
+    def test_debug_environment_variable_enabled(self):
+        """Test OutputHelper initialization when DEBUG environment variable is set."""
+        # Ensure DEBUG is set and GITHUB_ACTIONS is not
+        os.environ["DEBUG"] = "1"
+        if "GITHUB_ACTIONS" in os.environ:
+            del os.environ["GITHUB_ACTIONS"]
+
+        # Create a new OutputHelper to test the DEBUG path
+        output_helper = OutputHelper()
+
+        # Test that debug method works when DEBUG is enabled
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            output_helper.debug("test debug message")
+
+        self.assertIn("DEBUG: test debug message", out.getvalue())
+
+    def test_debug_environment_variable_disabled(self):
+        """Test OutputHelper initialization when DEBUG environment variable is not set."""
+        # Ensure DEBUG is not set and GITHUB_ACTIONS is not set
+        if "DEBUG" in os.environ:
+            del os.environ["DEBUG"]
+        if "GITHUB_ACTIONS" in os.environ:
+            del os.environ["GITHUB_ACTIONS"]
+
+        # Create a new OutputHelper to test the non-DEBUG path
+        output_helper = OutputHelper()
+
+        # Test that debug method is a no-op when DEBUG is disabled
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            output_helper.debug("test debug message")
+
+        # Should be empty since debug is a no-op lambda
+        self.assertEqual(out.getvalue(), "")
+
     def test_load_empty_certs(self):
         del os.environ["CA_FILE"]
         # cert path should be none
