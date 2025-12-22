@@ -47,7 +47,9 @@ contrast_verify:
     APP_NAME: $APP_NAME
     BUILD_NUMBER: $CI_COMMIT_SHORT_SHA
   script:
-    - /usr/bin/env python3 /verify.py
+    # Both approaches work for backward compatibility:
+    - /usr/bin/env python3 /verify.py  # Legacy approach (still supported)
+    # - uv run python3 verify.py       # New approach (optional)
 ```
 
 ## Logging
