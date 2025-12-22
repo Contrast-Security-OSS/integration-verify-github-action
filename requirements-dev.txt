@@ -5,7 +5,7 @@ charset-normalizer==3.4.4
 distlib==0.4.0
 filelock==3.20.1
 identify==2.6.15
-nodeenv==1.9.1
+nodeenv==1.10.0
 platformdirs==4.5.1
 pre-commit==4.5.1
 pytest==9.0.2
