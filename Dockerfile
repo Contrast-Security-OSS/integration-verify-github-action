@@ -1,14 +1,24 @@
 FROM ghcr.io/astral-sh/uv:python3.13-alpine
 
-ENV VIRT_ENV=/opt/venv
-RUN uv venv $VIRT_ENV --python 3.13
-ENV PATH="$VIRT_ENV/bin:$PATH"
+WORKDIR /app
 
-ADD requirements.txt requirements.txt
-RUN uv pip install -r requirements.txt
+# Copy pyproject.toml and lock file for dependency installation
+COPY pyproject.toml uv.lock* ./
 
-ADD contrastverify contrastverify
-ADD version.py version.py
-ADD verify.py verify.py
+# Install dependencies and create the virtual environment
+RUN uv sync --frozen --no-dev
 
-ENTRYPOINT ["/usr/bin/env", "python3", "/verify.py"]
+# Copy application code
+COPY contrastverify contrastverify
+COPY version.py version.py
+COPY verify.py verify.py
+COPY verify-wrapper.py verify-wrapper.py
+
+# Install the local package in the already created environment
+RUN uv pip install --no-deps -e .
+
+# Create backward compatibility symlink for GitLab users
+RUN ln -s /app/verify-wrapper.py /verify.py && chmod +x /verify.py
+
+# Use the virtual environment directly instead of uv run
+ENTRYPOINT ["/app/.venv/bin/python3", "verify.py"]

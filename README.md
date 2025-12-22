@@ -80,7 +80,8 @@ A HTTP or HTTPS proxy may be used, by setting the environment variables `HTTP_PR
 If your environment requires custom certificate(s) to be trusted, these may be provided via the input `caFile` in pem format.
 
 ## Development Setup
-1. Run `python -m venv venv` to setup a virtual environment
-1. Run `. venv/bin/activate` to activate the virtual environment
-1. Run `pip install -r requirements-dev.txt` to install development dependencies (will also include app dependencies)
-1. Run `pre-commit install` to setup the pre-commit hook which handles formatting
+1. Install [uv](https://github.com/astral-sh/uv) if you haven't already: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+1. Run `uv sync --group dev` to install all dependencies (including development dependencies)
+1. Run `uv run pre-commit install` to setup the pre-commit hook which handles formatting
+1. Use `uv run pytest` to run tests
+1. Use `uv run python verify.py` to run the application locally
