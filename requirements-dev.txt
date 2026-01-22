@@ -4,7 +4,7 @@ cfgv==3.5.0
 charset-normalizer==3.4.4
 distlib==0.4.0
 filelock==3.20.3
-identify==2.6.15
+identify==2.6.16
 nodeenv==1.10.0
 platformdirs==4.5.1
 pre-commit==4.5.1
