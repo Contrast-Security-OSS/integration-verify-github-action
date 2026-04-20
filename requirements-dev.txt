@@ -11,7 +11,7 @@ pre-commit==4.5.1
 pytest==9.0.2
 pytest-cov==7.0.0
 PyYAML==6.0.3
-responses==0.25.8
+responses==0.26.0
 six==1.17.0
 toml==0.10.2
 virtualenv==20.36.1
