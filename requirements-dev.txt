@@ -8,7 +8,7 @@ identify==2.6.16
 nodeenv==1.10.0
 platformdirs==4.5.1
 pre-commit==4.5.1
-pytest==9.0.2
+pytest==9.0.3
 pytest-cov==7.0.0
 PyYAML==6.0.3
 responses==0.25.8
