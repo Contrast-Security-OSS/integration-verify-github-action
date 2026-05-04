@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.13-alpine
+FROM ghcr.io/astral-sh/uv:python3.13-alpine@sha256:213ea9e877219e7bcb0f55070c9130c3fc84995475fca9eb8fb362916dc3f808
 
 ENV VIRT_ENV=/opt/venv
 RUN uv venv $VIRT_ENV --python 3.13
