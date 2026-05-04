@@ -4,10 +4,18 @@
    pull_request:
      branches: [ main ]
 
+ permissions:
+   contents: read
+
  jobs:
    check-docker-image-is-used:
      runs-on: ubuntu-latest
      steps:
-      - uses: actions/checkout@v6
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Check action will use image
         run: yq -e '.runs.image=="docker://ghcr.io/contrast-security-oss/integration-verify:main"' action.yaml || { echo "::error file=action.yaml,line=$(yq '.runs.image|line' action.yaml),column=$(yq '.runs.image|column' action.yaml),endColumn=$(yq '(.runs.image|column)+(.runs.image|length)' action.yaml)::Action is not configured to use built Docker image" && exit 1; }
