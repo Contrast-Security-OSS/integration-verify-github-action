@@ -6,14 +6,14 @@ distlib==0.4.4
 filelock==4.2.4
 identify==2.6.20
 nodeenv==1.11.0
-platformdirs==4.13.5
+platformdirs==4.13.6
 pre-commit==4.7.0
-pytest==9.1.1
+pytest==9.2.0
 pytest-cov==7.1.0
 PyYAML==6.0.3
 responses==0.26.3
 six==1.17.0
 toml==0.10.2
-virtualenv==21.14.13
+virtualenv==21.15.0
 
 -r requirements.txt
