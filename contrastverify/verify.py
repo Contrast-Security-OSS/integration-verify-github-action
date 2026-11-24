@@ -24,6 +24,8 @@ class ContrastVerifyAction:
         severities: list[str],
         output_helper: OutputHelper | None = None,
         cert_file: Path | None = None,
+        session_metadata: dict[str, str] | None = None,
+        route_coverage_threshold: float | None = None,
     ) -> None:
         self._app_id = app_id
         self._app_name = app_name
@@ -36,11 +38,16 @@ class ContrastVerifyAction:
         self._severities = severities
         self._output_helper = output_helper or OutputHelper()
         self._cert_file = str(cert_file) if cert_file else True
+        self._session_metadata = session_metadata or {}
+        self._route_coverage_threshold = route_coverage_threshold
 
         self._headers = None
         self._user_agent = None
         self._app_id_verified = False
         self._job_start_time_provided = job_start_time is not None
+        self._session_metadata_fields = None
+        self._session_metadata_filters_resolved = False
+        self._session_metadata_filters = None
 
     @property
     def user_agent(self):
@@ -90,11 +97,12 @@ class ContrastVerifyAction:
         response.raise_for_status()
         return response
 
-    def post_request(self, path, body):
+    def post_request(self, path, body, parameters={}):
         """Send a POST request to TeamServer."""
-        self._output_helper.debug(f"POST {path}")
+        self._output_helper.debug(f"POST {path} {parameters}")
         response = requests.post(
             self._base_url + path,
+            params=parameters,
             json=body,
             headers=self.teamserver_headers,
             verify=self._cert_file,
@@ -148,6 +156,7 @@ class ContrastVerifyAction:
             )
         else:
             self._app_id = matching_named_apps[0]["app_id"]
+            self._app_id_verified = True
             self._output_helper.info(
                 f'Application ID for "{self._app_name}" is {self._app_id}'
             )
@@ -187,7 +196,208 @@ class ContrastVerifyAction:
         )
         return response.json()
 
-    def verify_application(self):
+    @staticmethod
+    def _normalize_metadata_key(key: str | None) -> str:
+        """Normalize a metadata key/label so `branchName`, `Branch Name` and `branch_name` all match."""
+        return "".join(filter(str.isalnum, key or "")).lower()
+
+    def fetch_session_metadata_fields(self):
+        """Fetch (and cache) the session metadata fields TeamServer knows about for this application."""
+        if self._session_metadata_fields is None:
+            response = self.get_request(f"metadata/session/{self.app_id}/filters")
+            self._session_metadata_fields = response.json().get("filters") or []
+            self._output_helper.debug(
+                f"Session metadata fields: {self._session_metadata_fields}"
+            )
+        return self._session_metadata_fields
+
+    def resolve_session_metadata(self):
+        """
+        Match each configured session metadata key to a TeamServer metadata field, by agent label or display label,
+        where the field also has the configured value.
+        :return: tuple of (list of (key, value, field) for matched pairs, list of unmatched keys)
+        """
+        fields = self.fetch_session_metadata_fields()
+        resolved = []
+        unresolved = []
+        for key, value in self._session_metadata.items():
+            normalized_key = self._normalize_metadata_key(key)
+            field = next(
+                (
+                    field
+                    for field in fields
+                    if self._normalize_metadata_key(field.get("agentLabel"))
+                    == normalized_key
+                ),
+                None,
+            ) or next(
+                (
+                    field
+                    for field in fields
+                    if self._normalize_metadata_key(field.get("label"))
+                    == normalized_key
+                ),
+                None,
+            )
+            field_values = {
+                str(field_value.get("value"))
+                for field_value in (field or {}).get("values") or []
+            }
+            if field and value in field_values:
+                resolved.append((key, value, field))
+            else:
+                unresolved.append(key)
+        return resolved, unresolved
+
+    def session_metadata_filters(self):
+        """
+        Resolve (and cache) the configured session metadata for use as filters.
+        If any key or value is not found in TeamServer, the session cannot be matched, so checks fall back to the whole application.
+        :return: list of (key, value, field), or None if checks should consider the whole application
+        """
+        if not self._session_metadata_filters_resolved:
+            self._session_metadata_filters_resolved = True
+            if self._session_metadata:
+                resolved, unresolved = self.resolve_session_metadata()
+                if unresolved:
+                    missing = ", ".join(
+                        f"{key}={self._session_metadata[key]}" for key in unresolved
+                    )
+                    self._output_helper.warning(
+                        f"Session metadata {missing} was not found for this application, checks will consider the whole application instead. Check the keys and values match the agent session_metadata configuration."
+                    )
+                else:
+                    self._session_metadata_filters = resolved
+        return self._session_metadata_filters
+
+    @property
+    def session_metadata_description(self):
+        return ", ".join(
+            f"{key}={value}" for key, value in self._session_metadata.items()
+        )
+
+    def fetch_session_metadata_vulnerability_count(self):
+        """
+        Count open vulnerabilities matching all configured session metadata (and other filters),
+        or across the whole application if the session metadata could not be resolved.
+        :return: number of matching open vulnerabilities
+        """
+        body = {
+            "quickFilter": "OPEN",
+            "severities": self._severities,
+        }
+        filters = self.session_metadata_filters()
+        if filters is not None:
+            body["metadataFilters"] = [
+                {
+                    "fieldID": (
+                        int(field["id"]) if str(field["id"]).isdigit() else field["id"]
+                    ),
+                    "values": [value],
+                }
+                for _, value, field in filters
+            ]
+        if self._build_number:
+            body["appVersionTags"] = [self._build_number]
+        if self._job_start_time_provided:
+            body["startDate"] = self._job_start_time
+            body["timestampFilter"] = "FIRST"
+
+        response = self.post_request(
+            f"traces/{self.app_id}/filter",
+            body,
+            {"expand": "skip_links", "limit": 1},
+        )
+        result = response.json()
+        self._output_helper.debug(result)
+        return result["count"]
+
+    def fetch_route_coverage(self):
+        """
+        Fetch route coverage for the application, filtered by session metadata if configured and resolved.
+        :return: tuple of (exercised route count, total route count)
+        """
+        filters = self.session_metadata_filters()
+        if filters is not None:
+            body = {
+                "metadata": [
+                    {"label": field["label"], "values": [value]}
+                    for _, value, field in filters
+                ]
+            }
+            response = self.post_request(
+                f"applications/{self.app_id}/route/filter",
+                body,
+                {"expand": "skip_links"},
+            )
+        else:
+            response = self.get_request(
+                f"applications/{self.app_id}/route", {"expand": "skip_links"}
+            )
+
+        result = response.json()
+        self._output_helper.debug(result)
+        routes = result.get("routes") or []
+        total = result.get("count")
+        if total is None:
+            total = len(routes)
+        exercised = result.get("exercisedCount", result.get("exercised_count"))
+        if exercised is None:
+            exercised = len(
+                [
+                    route
+                    for route in routes
+                    if route.get("status") == "EXERCISED" or route.get("exercised")
+                ]
+            )
+        return exercised, total
+
+    def verify_route_coverage(self):
+        """
+        Compare route coverage percentage against the configured minimum.
+        :return: failure message, or None if the check passes
+        """
+        threshold = self._route_coverage_threshold
+        if threshold is None:
+            return None
+        exercised, total = self.fetch_route_coverage()
+        coverage = (exercised / total * 100) if total else 0.0
+        scope = (
+            f" for session metadata [{self.session_metadata_description}]"
+            if self.session_metadata_filters() is not None
+            else ""
+        )
+        summary = f"Route coverage{scope} is {coverage:.2f}% ({exercised} of {total} routes exercised)"
+        if total == 0:
+            self._output_helper.warning(
+                "No routes were found, check that the application has been exercised with a Contrast agent."
+            )
+        if coverage < threshold:
+            return f"{summary} - Contrast verify gate fails as this is below threshold (threshold requires {threshold:g}%)"
+        self._output_helper.info(f"{summary} (meets threshold of {threshold:g}%)")
+        return None
+
+    def verify_session_metadata_vulnerabilities(self):
+        """
+        Compare the number of open vulnerabilities matching session metadata against the fail threshold.
+        :return: failure message, or None if the check passes
+        """
+        self._output_helper.info(
+            f"Session metadata provided [{self.session_metadata_description}], checking matching vulnerabilities against threshold (job outcome policies are not used)..."
+        )
+        open_vulnerabilities = self.fetch_session_metadata_vulnerability_count()
+        if open_vulnerabilities > self._fail_threshold:
+            return f"The vulnerability count is {open_vulnerabilities} - Contrast verify gate fails as this is above threshold (threshold allows {self._fail_threshold})"
+        self._output_helper.info(
+            f"The vulnerability count is {open_vulnerabilities} (below threshold)"
+        )
+        return None
+
+    def verify_vulnerabilities(self):
+        """
+        Check the application against a matching job outcome policy, or the open vulnerability count if none match.
+        :return: failure message, or None if the check passes
+        """
         # First check for a configured job outcome policy defined in TeamServer
         job_outcome_policy_result = self.perform_security_check()
         self._output_helper.debug(job_outcome_policy_result)
@@ -207,9 +417,7 @@ class ContrastVerifyAction:
                     f'Matching policy "{jop_name}" has job start time configured, but no job start time was provided, so 0 was passed to consider all open vulnerabilities.'
                 )
 
-            self._output_helper.set_failed(
-                f'Contrast verify gate fails with status {jop_outcome} - policy "{jop_name}"'
-            )
+            return f'Contrast verify gate fails with status {jop_outcome} - policy "{jop_name}"'
         elif security_check_result is True:
             self._output_helper.info("Step passes matching policy")
         else:
@@ -226,10 +434,28 @@ class ContrastVerifyAction:
             )
             open_vulnerabilities = open_vulnerabilities_data["count"]
             if open_vulnerabilities > self._fail_threshold:
-                self._output_helper.set_failed(
-                    f"The vulnerability count is {open_vulnerabilities} - Contrast verify gate fails as this is above threshold (threshold allows {self._fail_threshold})"
-                )
-            else:
-                self._output_helper.info(
-                    f"The vulnerability count is {open_vulnerabilities} (below threshold)"
-                )
+                return f"The vulnerability count is {open_vulnerabilities} - Contrast verify gate fails as this is above threshold (threshold allows {self._fail_threshold})"
+            self._output_helper.info(
+                f"The vulnerability count is {open_vulnerabilities} (below threshold)"
+            )
+        return None
+
+    def verify_application(self):
+        """Run all configured checks, marking the step failed if any of them fail."""
+        if self._session_metadata:
+            failures = [self.verify_session_metadata_vulnerabilities()]
+        else:
+            failures = [self.verify_vulnerabilities()]
+
+        if self._route_coverage_threshold is not None:
+            failures.append(self.verify_route_coverage())
+
+        failures = [failure for failure in failures if failure]
+        if len(failures) == 1:
+            self._output_helper.set_failed(failures[0])
+        elif failures:
+            for failure in failures:
+                self._output_helper.error(failure)
+            self._output_helper.set_failed(
+                f"Contrast verify gate fails - {len(failures)} checks failed"
+            )

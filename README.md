@@ -16,6 +16,8 @@ This action verifies an application that's onboarded to Contrast by determining 
 |`failThreshold`|Number of vulnerabilities that are needed to fail the build (not used if there is a defined job outcome policy)|No, defaults to `0`|
 |`jobStartTime`|Filter vulnerabilities first found after this timestamp (formatted **in milliseconds** since the epoch)|No, defaults to `0`|
 |`severities`|Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy). Values allowed are `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` and `NOTE`|No, defaults to `CRITICAL,HIGH`|
+|`sessionMetadata`|Session metadata to filter vulnerabilities and route coverage by, in the same `key=value` format as the agent's `session_metadata` configuration, e.g. `branchName=main,commitHash=abc123`. See [Session Metadata](#session-metadata)|No|
+|`routeCoverageThreshold`|Minimum route coverage percentage (`0`-`100`) required to pass. Filtered by `sessionMetadata` if provided|No, route coverage is not checked if unset|
 
 
 ## Example usage
@@ -64,6 +66,32 @@ This approach is useful when you want to consider only new vulnerabilities found
 You may also pass a `buildNumber` input which will filter for vulnerabilities found in specific builds. The agent must be started with this same build number provided via the `CONTRAST__APPLICATION__VERSION` environment variable, or equivalent YAML/System Properties.
 
 If both `jobStartTime` and `buildNumber` are provided, the step will consider only vulnerabilities found since the specified start time, **and** with the provided `buildNumber`.
+
+### Session Metadata
+
+Contrast agents can tag the vulnerabilities and routes they observe with [session metadata](https://docs.contrastsecurity.com/en/session-metadata.html), configured via `CONTRAST__APPLICATION__SESSION_METADATA` (or `application.session_metadata` in YAML), for example `branchName=main,commitHash=abc123`.
+
+Pass the same key/value pairs to the `sessionMetadata` input to verify only results from that session. Entries may be separated by commas or newlines, and keys may be the agent key (`branchName`) or the TeamServer display label (`Branch Name`). When `sessionMetadata` is provided:
+
+- Job outcome policies are **not** used. Instead, open vulnerabilities matching **all** of the provided metadata (plus `severities`, and `buildNumber`/`jobStartTime` if set) are counted, and the step fails if the count is above `failThreshold`.
+- If `routeCoverageThreshold` is set, route coverage (exercised routes / discovered routes) is calculated for the matching session, and the step fails if it is below the threshold.
+
+`routeCoverageThreshold` may also be used without `sessionMetadata`, in which case route coverage for the whole application is checked. If multiple checks fail, all failures are reported.
+
+If any `sessionMetadata` key or value has not been reported to TeamServer for the application, a warning is logged and both checks fall back to the whole application: all open vulnerabilities (still filtered by `severities`, `buildNumber` and `jobStartTime`) are compared against `failThreshold`, and route coverage is calculated for the whole application.
+
+```yaml
+      - name: Contrast Verify
+        uses: Contrast-Security-OSS/integration-verify-github-action@main
+        with:
+          apiKey: ${{ secrets.CONTRAST_API_KEY }}
+          orgId: <organization id>
+          authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
+          appName: App_Name_Here
+          sessionMetadata: "branchName=${{ github.ref_name }},commitHash=${{ github.sha }}"
+          failThreshold: 0
+          routeCoverageThreshold: 80
+```
 
 ## Use outside of GitHub Actions
 

@@ -94,6 +94,33 @@ class InputHelper:
         ]
 
     @staticmethod
+    def parse_session_metadata(session_metadata: str | None) -> dict[str, str]:
+        """
+        Parse session metadata in the same format used by the Contrast agent's `application.session_metadata`
+        configuration, e.g. `branchName=main,commitHash=abc123,buildNumber=42`.
+        Entries may be separated by commas or newlines; keys and values are trimmed.
+        :raises ValueError: if an entry is not a key=value pair, or a key is repeated
+        """
+        metadata = {}
+        if not session_metadata:
+            return metadata
+
+        for entry in session_metadata.replace("\n", ",").split(","):
+            entry = entry.strip()
+            if entry == "":
+                continue
+            key, separator, value = entry.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if not separator or key == "" or value == "":
+                raise ValueError(f'"{entry}" is not in the format key=value')
+            if key in metadata:
+                raise ValueError(f'key "{key}" is specified more than once')
+            metadata[key] = value
+
+        return metadata
+
+    @staticmethod
     def load_certs(output_helper: OutputHelper) -> Path | None:
         certs_to_add = InputHelper.get_input("CA_FILE")
         if not certs_to_add:

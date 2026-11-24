@@ -21,6 +21,8 @@ Inputs documented in the GitHub Actions [README](README.md#inputs) are all suppo
 |`failThreshold`|`FAIL_THRESHOLD`|`CONTRAST_FAIL_THRESHOLD`|
 |`jobStartTime`|`JOB_START_TIME`|`CONTRAST_JOB_START_TIME`|
 |`severities`|`SEVERITIES`|`CONTRAST_SEVERITIES`|
+|`sessionMetadata`|`SESSION_METADATA`|`CONTRAST_SESSION_METADATA`|
+|`routeCoverageThreshold`|`ROUTE_COVERAGE_THRESHOLD`|`CONTRAST_ROUTE_COVERAGE_THRESHOLD`|
 
 The `CONTRAST_` prefix is optional.
 
