@@ -36,6 +36,10 @@ inputs:
   severities:
     description: 'Comma separated list of vulnerability severities to consider (not used if there is a defined job outcome policy)'
     default: 'CRITICAL,HIGH'
+  sessionMetadata:
+    description: 'Session metadata to filter vulnerabilities and route coverage by, in the same format as the agent session_metadata configuration, e.g. "branchName=main,commitHash=abc123". When set, job outcome policies are not used and matching open vulnerabilities are compared against failThreshold.'
+  routeCoverageThreshold:
+    description: 'Minimum route coverage percentage (0-100) required to pass. Route coverage is filtered by sessionMetadata if provided. Not checked if unset.'
 
 runs:
   using: 'docker'

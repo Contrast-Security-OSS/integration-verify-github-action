@@ -53,6 +53,12 @@ class TestValidateInputs(unittest.TestCase):
             "CONTRAST_FAIL_THRESHOLD",
             "CONTRAST_BUILD_NUMBER",
             "CONTRAST_CA_FILE",
+            "SESSION_METADATA",
+            "INPUT_SESSIONMETADATA",
+            "CONTRAST_SESSION_METADATA",
+            "ROUTE_COVERAGE_THRESHOLD",
+            "INPUT_ROUTECOVERAGETHRESHOLD",
+            "CONTRAST_ROUTE_COVERAGE_THRESHOLD",
         ]
         for var in env_vars_to_clear:
             if var in os.environ:
@@ -274,6 +280,56 @@ class TestValidateInputs(unittest.TestCase):
             verify.validate_inputs(output_helper)
 
         self.assertEqual(cm.exception.code, 1)
+
+    def _set_required_inputs(self):
+        os.environ["API_KEY"] = "test_api_key"
+        os.environ["ORG_ID"] = "test_org_id"
+        os.environ["AUTH_HEADER"] = "test_auth_header"
+        os.environ["APP_ID"] = "test_app_id"
+
+    def test_validate_inputs_session_metadata_defaults(self):
+        """Test validate_inputs defaults when session metadata and route coverage are not set."""
+        self._set_required_inputs()
+
+        config = verify.validate_inputs(OutputHelper())
+
+        self.assertEqual(config["SESSION_METADATA"], {})
+        self.assertNotIn("ROUTE_COVERAGE_THRESHOLD", config)
+
+    def test_validate_inputs_with_session_metadata_and_route_coverage(self):
+        """Test validate_inputs with session metadata and route coverage threshold."""
+        self._set_required_inputs()
+        os.environ["INPUT_SESSIONMETADATA"] = "branchName=main,commitHash=abc123"
+        os.environ["INPUT_ROUTECOVERAGETHRESHOLD"] = "75.5%"
+
+        config = verify.validate_inputs(OutputHelper())
+
+        self.assertEqual(
+            config["SESSION_METADATA"], {"branchName": "main", "commitHash": "abc123"}
+        )
+        self.assertEqual(config["ROUTE_COVERAGE_THRESHOLD"], 75.5)
+
+    def test_validate_inputs_invalid_session_metadata(self):
+        """Test validate_inputs fails when session metadata is malformed."""
+        self._set_required_inputs()
+        os.environ["SESSION_METADATA"] = "branchName"
+
+        with self.assertRaises(SystemExit) as cm:
+            verify.validate_inputs(OutputHelper())
+
+        self.assertEqual(cm.exception.code, 1)
+
+    def test_validate_inputs_invalid_route_coverage_threshold(self):
+        """Test validate_inputs fails when route coverage threshold is not a valid percentage."""
+        for invalid in ["abc", "-1", "101"]:
+            with self.subTest(invalid=invalid):
+                self._set_required_inputs()
+                os.environ["ROUTE_COVERAGE_THRESHOLD"] = invalid
+
+                with self.assertRaises(SystemExit) as cm:
+                    verify.validate_inputs(OutputHelper())
+
+                self.assertEqual(cm.exception.code, 1)
 
     def test_validate_inputs_empty_string_values(self):
         """Test validate_inputs handles empty string values correctly."""

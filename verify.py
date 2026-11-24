@@ -59,6 +59,23 @@ def validate_inputs(output_helper: OutputHelper):
         except ValueError:
             errors.append("jobStartTime (must be a number)")
 
+    try:
+        config["SESSION_METADATA"] = InputHelper.parse_session_metadata(
+            InputHelper.get_input("SESSION_METADATA")
+        )
+    except ValueError as e:
+        errors.append(f"sessionMetadata ({e})")
+
+    route_coverage_threshold = InputHelper.get_input("ROUTE_COVERAGE_THRESHOLD")
+    if route_coverage_threshold is not None and route_coverage_threshold != "":
+        try:
+            threshold = float(route_coverage_threshold.strip().rstrip("%"))
+            if not 0 <= threshold <= 100:
+                raise ValueError()
+            config["ROUTE_COVERAGE_THRESHOLD"] = threshold
+        except ValueError:
+            errors.append("routeCoverageThreshold (must be a number from 0 to 100)")
+
     if len(errors) != 0:
         output_helper.error(
             f'Missing required inputs: {", ".join(errors)}, please see documentation for correct usage.'
@@ -99,6 +116,8 @@ if __name__ == "__main__":
         config["SEVERITIES"],
         output_helper,
         cert_file,
+        session_metadata=config.get("SESSION_METADATA"),
+        route_coverage_threshold=config.get("ROUTE_COVERAGE_THRESHOLD"),
     )
     action.validate_connection()
     action.validate_organization()

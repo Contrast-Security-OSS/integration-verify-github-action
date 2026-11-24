@@ -38,6 +38,28 @@ class InputHelperTestCase(unittest.TestCase):
             ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NOTE"],
         )
 
+    def test_parse_session_metadata(self):
+        self.assertEqual(InputHelper.parse_session_metadata(None), {})
+        self.assertEqual(InputHelper.parse_session_metadata(""), {})
+        self.assertEqual(
+            InputHelper.parse_session_metadata(
+                "branchName=main, commitHash = abc123,buildNumber=42"
+            ),
+            {"branchName": "main", "commitHash": "abc123", "buildNumber": "42"},
+        )
+        self.assertEqual(
+            InputHelper.parse_session_metadata(
+                "branchName=feature/a=b\n  committer=Jane Doe\n\n"
+            ),
+            {"branchName": "feature/a=b", "committer": "Jane Doe"},
+        )
+
+    def test_parse_session_metadata_invalid(self):
+        for invalid in ["branchName", "=main", "branchName=", "a=1,a=2"]:
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    InputHelper.parse_session_metadata(invalid)
+
     def test_debug_environment_variable_enabled(self):
         """Test OutputHelper initialization when DEBUG environment variable is set."""
         # Ensure DEBUG is set and GITHUB_ACTIONS is not
