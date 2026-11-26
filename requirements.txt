@@ -1,6 +1,6 @@
 actions-toolkit==0.1.15
-certifi==2026.10.23
-charset-normalizer==3.5.2
+certifi==2026.11.20
+charset-normalizer==3.5.3
 cryptography==50.0.2
 idna==3.20
 requests==2.34.2
